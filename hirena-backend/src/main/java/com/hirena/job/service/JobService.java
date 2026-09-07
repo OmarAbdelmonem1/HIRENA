@@ -1,0 +1,221 @@
+package com.hirena.job.service;
+
+import com.hirena.application.repository.ApplicationRepository;
+import com.hirena.auth.security.CurrentUserProvider;
+import com.hirena.company.entity.Company;
+import com.hirena.company.service.CompanyService;
+import com.hirena.exception.BadRequestException;
+import com.hirena.exception.ResourceNotFoundException;
+import com.hirena.job.dto.AdminJobRejectionRequest;
+import com.hirena.job.dto.JobAnalyticsResponse;
+import com.hirena.job.dto.JobRequest;
+import com.hirena.job.dto.JobResponse;
+import com.hirena.job.entity.Job;
+import com.hirena.job.entity.JobStatus;
+import com.hirena.job.entity.JobView;
+import com.hirena.job.repository.JobRepository;
+import com.hirena.job.repository.JobViewRepository;
+import com.hirena.jobseeker.entity.JobSeeker;
+import com.hirena.jobseeker.repository.JobSeekerRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class JobService {
+
+    private final JobRepository jobRepository;
+    private final JobViewRepository jobViewRepository;
+    private final ApplicationRepository applicationRepository;
+    private final CompanyService companyService;
+    private final CurrentUserProvider currentUserProvider;
+    private final JobSeekerRepository jobSeekerRepository;
+
+    // ── Company: CRUD ─────────────────────────────────────────────────────
+
+    public JobResponse createJob(JobRequest request) {
+        Company company = companyService.getCompanyForCurrentUser();
+
+        Job job = Job.builder()
+                .company(company)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .requirements(request.getRequirements())
+                .location(request.getLocation())
+                .salaryMin(request.getSalaryMin())
+                .salaryMax(request.getSalaryMax())
+                .employmentType(request.getEmploymentType())
+                .experienceRequired(request.getExperienceRequired())
+                .deadline(request.getDeadline())
+                .status(JobStatus.PENDING)
+                .build();
+
+        return JobResponse.fromEntity(jobRepository.save(job));
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobResponse> getMyCompanyJobs() {
+        Company company = companyService.getCompanyForCurrentUser();
+        return jobRepository.findAllByCompanyId(company.getId())
+                .stream()
+                .map(JobResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public JobResponse getMyCompanyJob(Long jobId) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Job job = jobRepository.findByIdAndCompanyId(jobId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found or does not belong to your company"));
+        return JobResponse.fromEntity(job);
+    }
+
+    public JobResponse updateJob(Long jobId, JobRequest request) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Job job = jobRepository.findByIdAndCompanyId(jobId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found or does not belong to your company"));
+
+        job.setTitle(request.getTitle());
+        job.setDescription(request.getDescription());
+        job.setRequirements(request.getRequirements());
+        job.setLocation(request.getLocation());
+        job.setSalaryMin(request.getSalaryMin());
+        job.setSalaryMax(request.getSalaryMax());
+        job.setEmploymentType(request.getEmploymentType());
+        job.setExperienceRequired(request.getExperienceRequired());
+        job.setDeadline(request.getDeadline());
+        // Reset to PENDING so admin re-reviews after edits
+        job.setStatus(JobStatus.PENDING);
+        job.setRejectionReason(null);
+
+        return JobResponse.fromEntity(jobRepository.save(job));
+    }
+
+    public void deleteJob(Long jobId) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Job job = jobRepository.findByIdAndCompanyId(jobId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found or does not belong to your company"));
+        jobRepository.delete(job);
+    }
+
+    // ── Admin: approval ───────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<JobResponse> getPendingJobs() {
+        return jobRepository.findAllByStatus(JobStatus.PENDING)
+                .stream()
+                .map(JobResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    public JobResponse approveJob(Long jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+        if (job.getStatus() != JobStatus.PENDING) {
+            throw new BadRequestException("Only PENDING jobs can be approved. Current status: " + job.getStatus());
+        }
+
+        job.setStatus(JobStatus.APPROVED);
+        job.setRejectionReason(null);
+        return JobResponse.fromEntity(jobRepository.save(job));
+    }
+
+    public JobResponse rejectJob(Long jobId, AdminJobRejectionRequest request) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+        if (job.getStatus() != JobStatus.PENDING) {
+            throw new BadRequestException("Only PENDING jobs can be rejected. Current status: " + job.getStatus());
+        }
+
+        job.setStatus(JobStatus.REJECTED);
+        if (request != null && request.getRejectionReason() != null) {
+            job.setRejectionReason(request.getRejectionReason());
+        }
+        return JobResponse.fromEntity(jobRepository.save(job));
+    }
+
+    // ── Public / JobSeeker: approved jobs ────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public Page<JobResponse> getApprovedJobs(Pageable pageable) {
+        return jobRepository.findAllByStatus(JobStatus.APPROVED, pageable)
+                .map(JobResponse::fromEntity);
+    }
+
+    @Transactional
+    public JobResponse getApprovedJobById(Long jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
+
+        if (job.getStatus() != JobStatus.APPROVED) {
+            throw new ResourceNotFoundException("Job not found with id: " + jobId);
+        }
+
+        // Record view if the requester is an authenticated JobSeeker
+        tryRecordView(job);
+
+        return JobResponse.fromEntity(job);
+    }
+
+    private void tryRecordView(Job job) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+                return;
+            }
+
+            Long userId = currentUserProvider.getCurrentUserId();
+            jobSeekerRepository.findByUserId(userId).ifPresent(jobSeeker -> {
+                LocalDateTime windowStart = LocalDateTime.now().minusHours(24);
+                boolean alreadyViewed = jobViewRepository
+                        .findTopByJobIdAndJobSeekerIdAndViewedAtAfter(job.getId(), jobSeeker.getId(), windowStart)
+                        .isPresent();
+
+                if (!alreadyViewed) {
+                    JobView view = JobView.builder()
+                            .job(job)
+                            .jobSeeker(jobSeeker)
+                            .viewedAt(LocalDateTime.now())
+                            .build();
+                    jobViewRepository.save(view);
+                }
+            });
+        } catch (Exception ignored) {
+            // Never fail a public read because of view tracking
+        }
+    }
+
+    // ── Company analytics ─────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public JobAnalyticsResponse getJobAnalytics(Long jobId) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Job job = jobRepository.findByIdAndCompanyId(jobId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found or does not belong to your company"));
+
+        long totalViews = jobViewRepository.countByJobId(jobId);
+        long uniqueViewers = jobViewRepository.countDistinctJobSeekerByJobId(jobId);
+        long totalApplications = applicationRepository.countByJobId(jobId);
+
+        return JobAnalyticsResponse.builder()
+                .jobId(job.getId())
+                .title(job.getTitle())
+                .status(job.getStatus())
+                .totalViews(totalViews)
+                .uniqueViewers(uniqueViewers)
+                .totalApplications(totalApplications)
+                .build();
+    }
+}
