@@ -3,6 +3,7 @@ package com.hirena.auth.service;
 import com.hirena.auth.dto.AuthResponse;
 import com.hirena.auth.dto.LoginRequest;
 import com.hirena.auth.dto.RegisterRequest;
+import com.hirena.auth.security.CustomUserDetails;
 import com.hirena.auth.security.JwtService;
 import com.hirena.exception.AccountDisabledException;
 import com.hirena.exception.BadRequestException;
@@ -17,9 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +42,9 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private AuthenticationManager authenticationManager;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -47,11 +54,8 @@ class AuthServiceTest {
     void setUp() {
         sampleUser = User.builder()
                 .id(1L)
-                .firstName("John")
-                .lastName("Doe")
                 .email("john.doe@hirena.com")
                 .password("encoded_password")
-                .phone("+123456789")
                 .role(Role.JOB_SEEKER)
                 .enabled(true)
                 .build();
@@ -60,11 +64,10 @@ class AuthServiceTest {
     @Test
     void register_shouldSucceed_forJobSeeker() {
         RegisterRequest request = RegisterRequest.builder()
-                .firstName("John")
-                .lastName("Doe")
+
                 .email("john.doe@hirena.com")
                 .password("password123")
-                .phone("+123456789")
+
                 .role(Role.JOB_SEEKER)
                 .build();
 
@@ -88,8 +91,6 @@ class AuthServiceTest {
     @Test
     void register_shouldThrowBadRequestException_whenRoleIsAdmin() {
         RegisterRequest request = RegisterRequest.builder()
-                .firstName("Admin")
-                .lastName("User")
                 .email("admin@hirena.com")
                 .password("admin123")
                 .role(Role.ADMIN)
@@ -102,8 +103,6 @@ class AuthServiceTest {
     @Test
     void register_shouldThrowEmailAlreadyExistsException_whenEmailTaken() {
         RegisterRequest request = RegisterRequest.builder()
-                .firstName("John")
-                .lastName("Doe")
                 .email("john.doe@hirena.com")
                 .password("password123")
                 .role(Role.JOB_SEEKER)
@@ -122,8 +121,10 @@ class AuthServiceTest {
                 .password("password123")
                 .build();
 
-        when(userRepository.findByEmail("john.doe@hirena.com")).thenReturn(Optional.of(sampleUser));
-        when(passwordEncoder.matches("password123", "encoded_password")).thenReturn(true);
+        CustomUserDetails userDetails = new CustomUserDetails(sampleUser);
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
         when(jwtService.generateToken(any(), eq(1L), eq(Role.JOB_SEEKER))).thenReturn("mocked-jwt-token");
 
         AuthResponse response = authService.login(request);
@@ -136,42 +137,29 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_shouldThrowInvalidCredentials_whenEmailNotFound() {
-        LoginRequest request = LoginRequest.builder()
-                .email("unknown@hirena.com")
-                .password("password123")
-                .build();
-
-        when(userRepository.findByEmail("unknown@hirena.com")).thenReturn(Optional.empty());
-
-        assertThrows(InvalidCredentialsException.class, () -> authService.login(request));
-    }
-
-    @Test
-    void login_shouldThrowInvalidCredentials_whenPasswordIncorrect() {
+    void login_shouldThrowInvalidCredentials_whenBadCredentials() {
         LoginRequest request = LoginRequest.builder()
                 .email("john.doe@hirena.com")
                 .password("wrongpassword")
                 .build();
 
-        when(userRepository.findByEmail("john.doe@hirena.com")).thenReturn(Optional.of(sampleUser));
-        when(passwordEncoder.matches("wrongpassword", "encoded_password")).thenReturn(false);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
 
         assertThrows(InvalidCredentialsException.class, () -> authService.login(request));
     }
 
     @Test
-    void login_shouldThrowAccountDisabledException_whenUserIsDisabled() {
-        sampleUser.setEnabled(false);
-
+    void login_shouldThrowAccountDisabledException_whenDisabledExceptionThrown() {
         LoginRequest request = LoginRequest.builder()
                 .email("john.doe@hirena.com")
                 .password("password123")
                 .build();
 
-        when(userRepository.findByEmail("john.doe@hirena.com")).thenReturn(Optional.of(sampleUser));
-        when(passwordEncoder.matches("password123", "encoded_password")).thenReturn(true);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new DisabledException("User is disabled"));
 
         assertThrows(AccountDisabledException.class, () -> authService.login(request));
     }
 }
+

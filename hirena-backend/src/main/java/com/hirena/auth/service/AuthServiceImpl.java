@@ -13,6 +13,10 @@ import com.hirena.user.entity.Role;
 import com.hirena.user.entity.User;
 import com.hirena.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-
+private final AuthenticationManager authenticationManager;
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -39,11 +43,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = User.builder()
-                .firstName(request.getFirstName().trim())
-                .lastName(request.getLastName().trim())
                 .email(normalizedEmail)
                 .password(passwordEncoder.encode(request.getPassword()))
-                .phone(request.getPhone() != null ? request.getPhone().trim() : null)
                 .role(request.getRole())
                 .enabled(true)
                 .build();
@@ -62,31 +63,37 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        String normalizedEmail = request.getEmail().toLowerCase().trim();
+@Override
+@Transactional(readOnly = true)
+public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+    String normalizedEmail =
+            request.getEmail().toLowerCase().trim();
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid email or password");
-        }
+    Authentication authentication =
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            normalizedEmail,
+                            request.getPassword()
+                    )
+            );
 
-        if (!user.isEnabled()) {
-            throw new AccountDisabledException("User account is disabled. Please contact support.");
-        }
+    CustomUserDetails userDetails =
+            (CustomUserDetails) authentication.getPrincipal();
 
-        CustomUserDetails userDetails = new CustomUserDetails(user);
-        String token = jwtService.generateToken(userDetails, user.getId(), user.getRole());
+    String token = jwtService.generateToken(
+            userDetails,
+            userDetails.getId(),
+            userDetails.getRole()
+    );
 
-        return AuthResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
-                .userId(user.getId())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .build();
-    }
+    return AuthResponse.builder()
+            .token(token)
+            .tokenType("Bearer")
+            .userId(userDetails.getId())
+            .email(userDetails.getEmail())
+            .role(userDetails.getRole())
+            .build();
 }
+}
+

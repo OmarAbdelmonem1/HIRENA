@@ -39,11 +39,9 @@ class UserServiceTest {
     void setUp() {
         sampleUser = User.builder()
                 .id(1L)
-                .firstName("Alice")
-                .lastName("Smith")
                 .email("alice@hirena.com")
                 .password("encoded_pass")
-                .phone("+987654321")
+
                 .role(Role.JOB_SEEKER)
                 .enabled(true)
                 .build();
@@ -57,7 +55,7 @@ class UserServiceTest {
 
         assertNotNull(response);
         assertEquals(1L, response.getId());
-        assertEquals("Alice", response.getFirstName());
+
         assertEquals("alice@hirena.com", response.getEmail());
     }
 
@@ -82,9 +80,7 @@ class UserServiceTest {
         UserResponse response = userService.updateUser(1L, request);
 
         assertNotNull(response);
-        assertEquals("AliceUpdated", response.getFirstName());
-        assertEquals("SmithUpdated", response.getLastName());
-        assertEquals("+111222333", response.getPhone());
+        // Removed assertions for firstName, lastName, and phone as these fields no longer exist in UserResponse
     }
 
     @Test
