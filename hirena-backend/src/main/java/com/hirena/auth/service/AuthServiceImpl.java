@@ -13,7 +13,6 @@ import com.hirena.user.entity.Role;
 import com.hirena.user.entity.User;
 import com.hirena.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,7 +27,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-private final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -63,37 +63,41 @@ private final AuthenticationManager authenticationManager;
                 .build();
     }
 
-@Override
-@Transactional(readOnly = true)
-public AuthResponse login(LoginRequest request) {
+    @Override
+    @Transactional(readOnly = true)
+    public AuthResponse login(LoginRequest request) {
 
-    String normalizedEmail =
-            request.getEmail().toLowerCase().trim();
+        String normalizedEmail = request.getEmail().toLowerCase().trim();
 
-    Authentication authentication =
-            authenticationManager.authenticate(
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             normalizedEmail,
                             request.getPassword()
                     )
             );
+        } catch (org.springframework.security.authentication.DisabledException ex) {
+            throw new AccountDisabledException("User account is disabled");
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
 
-    CustomUserDetails userDetails =
-            (CustomUserDetails) authentication.getPrincipal();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-    String token = jwtService.generateToken(
-            userDetails,
-            userDetails.getId(),
-            userDetails.getRole()
-    );
+        String token = jwtService.generateToken(
+                userDetails,
+                userDetails.getId(),
+                userDetails.getRole()
+        );
 
-    return AuthResponse.builder()
-            .token(token)
-            .tokenType("Bearer")
-            .userId(userDetails.getId())
-            .email(userDetails.getEmail())
-            .role(userDetails.getRole())
-            .build();
-}
+        return AuthResponse.builder()
+                .token(token)
+                .tokenType("Bearer")
+                .userId(userDetails.getId())
+                .email(userDetails.getEmail())
+                .role(userDetails.getRole())
+                .build();
+    }
 }
 

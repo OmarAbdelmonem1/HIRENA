@@ -14,13 +14,16 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+
 @Slf4j
 @RestControllerAdvice
+@Component("commonGlobalExceptionHandler")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -138,6 +141,46 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+    }
+
+    // --- JobSeeker module exceptions (moved here to consolidate global handling) ---
+    @ExceptionHandler(com.hirena.jobseeker.exception.ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleJobSeekerResourceNotFound(com.hirena.jobseeker.exception.ResourceNotFoundException ex, HttpServletRequest request) {
+        log.warn("JobSeeker resource not found: {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.hirena.jobseeker.exception.BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleJobSeekerBadRequest(com.hirena.jobseeker.exception.BadRequestException ex, HttpServletRequest request) {
+        log.warn("JobSeeker bad request: {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.hirena.jobseeker.exception.ForbiddenOperationException.class)
+    public ResponseEntity<ErrorResponse> handleJobSeekerForbidden(com.hirena.jobseeker.exception.ForbiddenOperationException ex, HttpServletRequest request) {
+        log.warn("JobSeeker forbidden: {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
