@@ -1,0 +1,2 @@
+# HIRENA
+### HIRENA — Summary  **HIRENA** is a full-stack **Job Recruitment Platform** that connects job seekers with companies. Users can create professional profiles, upload CVs, search and apply for jobs, while companies can post jobs, manage applicants, and track recruitment processes. The platform also includes admin management, notifications, real-time communication, and AI-powered CV-to-job matching.  **Tech Stack:** React.js, Spring Boot, PostgreSQL, Spring Security, JWT, Redis, Elasticsearch, WebSocket, Docker, CI/CD.
