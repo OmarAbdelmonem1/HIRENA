@@ -1,24 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../../../providers/AuthProvider';
-import { getRouteByRole } from '../../../../constants/routes';
-const metrics = [
-  { label: 'Total Users', value: '1,250', change: '+12.5%', icon: 'users', tone: 'blue' },
-  { label: 'Companies', value: '120', change: '+8.2%', icon: 'building', tone: 'purple' },
-  { label: 'Active Jobs', value: '340', change: '+15.3%', icon: 'briefcase', tone: 'orange' },
-  { label: 'Applications', value: '2,450', change: '+22.4%', icon: 'document', tone: 'green' },
-];
-
-const jobs = [
-  { title: 'Java Developer', company: 'Google', location: 'Mountain View, CA', status: 'Active', posted: '2h ago', tone: 'green' },
-  { title: 'React Developer', company: 'Microsoft', location: 'Redmond, WA', status: 'Active', posted: '5h ago', tone: 'green' },
-  { title: 'DevOps Engineer', company: 'Amazon', location: 'Seattle, WA', status: 'Pending', posted: '1d ago', tone: 'orange' },
-];
-
-const applications = [
-  { initials: 'AA', name: 'Ahmed Ali', role: 'Java Developer', company: 'Google', status: 'Pending', tone: 'orange', color: 'blue' },
-  { initials: 'OA', name: 'Omar Ali', role: 'React Developer', company: 'Microsoft', status: 'Accepted', tone: 'green', color: 'purple' },
-  { initials: 'SK', name: 'Sara Khaled', role: 'UX Designer', company: 'Apple', status: 'Reviewing', tone: 'blue', color: 'orange' },
-];
+import { getAdminDashboard } from '../../Services/AdminDashbaordService';
 
 function MetricIcon({ type }) {
   const paths = {
@@ -34,10 +16,60 @@ export default function Dashboard() {
   const auth = useAuth();
   const [notice, setNotice] = useState('');
 
+  const [metrics, setMetrics] = useState([
+    { label: 'Total Users', value: '—', change: '', icon: 'users', tone: 'blue' },
+    { label: 'Companies', value: '—', change: '', icon: 'building', tone: 'purple' },
+    { label: 'Active Jobs', value: '—', change: '', icon: 'briefcase', tone: 'orange' },
+    { label: 'Applications', value: '—', change: '', icon: 'document', tone: 'green' },
+  ]);
+
+  const [applicationOverview, setApplicationOverview] = useState([]);
+  const [jobStatus, setJobStatus] = useState({ total: 0, active: 0, pending: 0, closed: 0, draft: 0 });
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [recentApplications, setRecentApplications] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const data = await getAdminDashboard();
+        if (!mounted) return;
+
+        // Stats -> metrics
+        const s = data.stats || {};
+        setMetrics([
+          { label: 'Total Users', value: (s.totalUsers ?? 0).toLocaleString(), change: '', icon: 'users', tone: 'blue' },
+          { label: 'Companies', value: (s.totalCompanies ?? 0).toLocaleString(), change: '', icon: 'building', tone: 'purple' },
+          { label: 'Active Jobs', value: (s.activeJobs ?? 0).toLocaleString(), change: '', icon: 'briefcase', tone: 'orange' },
+          { label: 'Applications', value: (s.totalApplications ?? 0).toLocaleString(), change: '', icon: 'document', tone: 'green' },
+        ]);
+
+        // Application overview
+        setApplicationOverview(data.applicationOverview || []);
+
+        // Job status
+        setJobStatus(data.jobStatus || { total: 0, active: 0, pending: 0, closed: 0, draft: 0 });
+
+        // recent lists
+        setRecentJobs(data.recentJobs || []);
+        setRecentApplications(data.recentApplications || []);
+      } catch (err) {
+        /* keep defaults */
+        console.error('Failed to load admin dashboard', err);
+      } finally {
+      }
+    };
+
+    load();
+    return () => { mounted = false; };
+  }, []);
+
   const handleAction = (label) => {
     setNotice(`${label} is ready to connect when the backend is available.`);
     window.setTimeout(() => setNotice(''), 3500);
   };
+
+  const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="admin-page">
@@ -67,7 +99,7 @@ export default function Dashboard() {
           <h2>Welcome back, Admin <span aria-hidden="true">👋</span></h2>
           <p>Here&apos;s what&apos;s happening across HIRENA today.</p>
         </div>
-        <span className="date-pill">Saturday, September 12, 2026</span>
+        <span className="date-pill">{todayLabel}</span>
       </section>
 
       <section className="metric-grid" aria-label="Platform statistics">
@@ -77,7 +109,7 @@ export default function Dashboard() {
             <div className="metric-copy">
               <span>{metric.label}</span>
               <strong>{metric.value}</strong>
-              <small><b>↗ {metric.change}</b> <em>vs last month</em></small>
+              <small>{metric.change ? <><b>↗ {metric.change}</b> <em>vs last month</em></> : null}</small>
             </div>
           </article>
         ))}
@@ -94,13 +126,16 @@ export default function Dashboard() {
             <div className="chart-y-axis"><span>120</span><span>90</span><span>60</span><span>30</span><span>0</span></div>
             <div className="chart-area">
               <div className="grid-lines"><i /><i /><i /><i /><i /></div>
+              {/* Simplified: chart lines are static SVG placeholders in current UI; update labels based on data */}
               <svg viewBox="0 0 640 210" preserveAspectRatio="none" aria-hidden="true">
                 <defs><linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#4c7cf5" stopOpacity=".18" /><stop offset="1" stopColor="#4c7cf5" stopOpacity="0" /></linearGradient></defs>
-                <path className="chart-fill" d="M0 170 C40 155 65 132 105 145 S155 110 205 126 S260 92 305 112 S355 80 405 96 S460 53 510 76 S565 40 640 54 V210 H0Z" />
-                <path className="chart-line primary" d="M0 170 C40 155 65 132 105 145 S155 110 205 126 S260 92 305 112 S355 80 405 96 S460 53 510 76 S565 40 640 54" />
-                <path className="chart-line secondary" d="M0 190 C42 181 68 170 105 177 S160 151 205 165 S260 142 305 153 S360 123 405 139 S455 110 510 124 S570 98 640 110" />
+                <path className="chart-fill" d="M0 170 L640 170 V210 H0Z" />
+                <path className="chart-line primary" d="M0 170 L640 170" />
+                <path className="chart-line secondary" d="M0 190 L640 190" />
               </svg>
-              <div className="chart-x-axis"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              <div className="chart-x-axis">
+                {(applicationOverview.length ? applicationOverview : [{day:'Mon'},{day:'Tue'},{day:'Wed'},{day:'Thu'},{day:'Fri'},{day:'Sat'},{day:'Sun'}]).map((d, i) => <span key={i}>{d.day}</span>)}
+              </div>
             </div>
           </div>
         </article>
@@ -108,8 +143,13 @@ export default function Dashboard() {
         <article className="panel status-panel">
           <div className="panel-heading"><div><h3>Job status</h3><p>Current job listings by status</p></div><button className="more-button" aria-label="More job status options" onClick={() => handleAction('Job status options')}>•••</button></div>
           <div className="status-content">
-            <div className="donut"><div><strong>340</strong><span>Total jobs</span></div></div>
-            <div className="status-list"><div><span><i className="legend-dot green" />Active</span><strong>180 <small>52.9%</small></strong></div><div><span><i className="legend-dot orange" />Pending</span><strong>60 <small>17.6%</small></strong></div><div><span><i className="legend-dot gray" />Closed</span><strong>70 <small>20.6%</small></strong></div><div><span><i className="legend-dot purple" />Draft</span><strong>30 <small>8.8%</small></strong></div></div>
+            <div className="donut"><div><strong>{jobStatus.total}</strong><span>Total jobs</span></div></div>
+            <div className="status-list">
+              <div><span><i className="legend-dot green" />Active</span><strong>{jobStatus.active} <small>{jobStatus.total ? ((jobStatus.active / jobStatus.total) * 100).toFixed(1) + '%' : '—'}</small></strong></div>
+              <div><span><i className="legend-dot orange" />Pending</span><strong>{jobStatus.pending} <small>{jobStatus.total ? ((jobStatus.pending / jobStatus.total) * 100).toFixed(1) + '%' : '—'}</small></strong></div>
+              <div><span><i className="legend-dot gray" />Closed</span><strong>{jobStatus.closed} <small>{jobStatus.total ? ((jobStatus.closed / jobStatus.total) * 100).toFixed(1) + '%' : '—'}</small></strong></div>
+              <div><span><i className="legend-dot purple" />Draft</span><strong>{jobStatus.draft} <small>{jobStatus.total ? ((jobStatus.draft / jobStatus.total) * 100).toFixed(1) + '%' : '—'}</small></strong></div>
+            </div>
           </div>
         </article>
       </section>
@@ -117,19 +157,47 @@ export default function Dashboard() {
       <section className="content-grid">
         <article className="panel table-panel">
           <div className="panel-heading"><div><h3>Recent jobs</h3><p>Latest jobs posted on the platform</p></div><button className="text-button" onClick={() => handleAction('View all jobs')}>View all <span>→</span></button></div>
-          <div className="table-wrap"><table><thead><tr><th>JOB TITLE</th><th>COMPANY</th><th>LOCATION</th><th>STATUS</th><th>POSTED</th></tr></thead><tbody>{jobs.map((job) => <tr key={job.title}><td><strong>{job.title}</strong></td><td>{job.company}</td><td>{job.location}</td><td><span className={`status-badge ${job.tone}`}>{job.status}</span></td><td>{job.posted}</td></tr>)}</tbody></table></div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr><th>JOB TITLE</th><th>COMPANY</th><th>LOCATION</th><th>STATUS</th><th>POSTED</th></tr>
+              </thead>
+              <tbody>
+                {(recentJobs.length ? recentJobs : []).map((job) => (
+                  <tr key={job.id}>
+                    <td><strong>{job.title}</strong></td>
+                    <td>{job.companyName}</td>
+                    <td>{job.location}</td>
+                    <td><span className={`status-badge ${job.status?.toLowerCase()}`}>{job.status}</span></td>
+                    <td>{job.createdAt ? new Date(job.createdAt).toLocaleString() : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </article>
+
         <article className="panel table-panel">
           <div className="panel-heading"><div><h3>Recent applications</h3><p>Latest candidate applications</p></div><button className="text-button" onClick={() => handleAction('View all applications')}>View all <span>→</span></button></div>
-          <div className="application-list">{applications.map((application) => <div className="application-row" key={application.name}><div className={`app-avatar ${application.color}`}>{application.initials}</div><div className="application-person"><strong>{application.name}</strong><span>{application.role} · {application.company}</span></div><span className={`status-badge ${application.tone}`}>{application.status}</span></div>)}</div>
+          <div className="application-list">
+            {(recentApplications.length ? recentApplications : []).map((a) => (
+              <div className="application-row" key={a.id}>
+                <div className={`app-avatar`}>{(a.jobSeekerName || '–').split(' ').map(n => n[0]).join('').slice(0,2)}</div>
+                <div className="application-person"><strong>{a.jobSeekerName || '—'}</strong><span>{a.jobTitle} · {a.companyName}</span></div>
+                <span className={`status-badge ${a.status?.toLowerCase()}`}>{a.status}</span>
+                <div className="application-time">{a.createdAt ? new Date(a.createdAt).toLocaleString() : '—'}</div>
+              </div>
+            ))}
+          </div>
         </article>
       </section>
 
       <section className="quick-actions">
         <div><h3>Quick actions</h3><p>Common tasks to help you manage HIRENA</p></div>
-        <div className="action-buttons"><button onClick={() => handleAction('Add user')}><span>＋</span>Add user</button><button onClick={() => handleAction('Add company')}><span>＋</span>Add company</button><button onClick={() => handleAction('Create job')}><span>＋</span>Create job</button></div>
+        <div className="action-buttons"><button className="action">Create job</button><button className="action">Invite company</button><button className="action">Export reports</button></div>
       </section>
-      {notice && <div className="toast" role="status">{notice}</div>}
+
+      {notice && <div className="notice">{notice}</div>}
     </div>
   );
 }

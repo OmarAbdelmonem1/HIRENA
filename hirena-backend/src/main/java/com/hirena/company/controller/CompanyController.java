@@ -11,9 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/company/profile")
+@RequestMapping("/api/company/")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('COMPANY')")
 public class CompanyController {
 
     private final CompanyService companyService;
@@ -21,6 +20,10 @@ public class CompanyController {
     @PostMapping
     public ResponseEntity<CompanyResponse> createProfile(@Valid @RequestBody CompanyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(companyService.createProfile(request));
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable Long id) {
+        return ResponseEntity.ok(companyService.getCompanyById(id));
     }
 
     @GetMapping

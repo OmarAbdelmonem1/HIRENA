@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import logoFull from "../../assets/hirena-logo-full.svg";
 
 export default function AdminSidebar() {
   return (
@@ -6,8 +7,7 @@ export default function AdminSidebar() {
 
       {/* Logo */}
       <div className="sidebar-logo">
-        <span className="sidebar-mark">H</span>
-        <div><h2>HIRENA</h2><span>ADMIN PANEL</span></div>
+        <img src={logoFull} alt="HIRENA" className="sidebar-logo-image" />
       </div>
 
       {/* Main */}

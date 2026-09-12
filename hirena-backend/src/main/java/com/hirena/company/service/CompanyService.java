@@ -19,13 +19,19 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final CurrentUserProvider currentUserProvider;
-
+    @Transactional(readOnly = true)
+    public CompanyResponse getCompanyById(Long id) {
+        return CompanyResponse.fromEntity(companyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Company profile not found for id: " + id)));
+    }
     public CompanyResponse createProfile(CompanyRequest request) {
         User currentUser = currentUserProvider.getCurrentUser();
 
         if (companyRepository.existsByUserId(currentUser.getId())) {
             throw new BadRequestException("A company profile already exists for this account");
         }
+          
 
         Company company = Company.builder()
                 .user(currentUser)

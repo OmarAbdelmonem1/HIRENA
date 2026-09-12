@@ -47,14 +47,20 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/jobseeker/**").hasRole("JOB_SEEKER")
-                        .requestMatchers("/api/company/**").hasRole("COMPANY")
-                        .anyRequest().authenticated()
-                )
+       .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/auth/**").permitAll()
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+        .requestMatchers("/api/jobseeker/**")
+            .hasAnyRole("JOB_SEEKER", "ADMIN")
+
+        .requestMatchers("/api/company/**")
+            .hasAnyRole("COMPANY", "ADMIN")
+
+        .anyRequest().authenticated()
+)
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
