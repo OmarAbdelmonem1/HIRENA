@@ -32,6 +32,7 @@ public class JobSeekerResponse {
     private JobSeeker.Availability availability;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean enabled; // account status, from linked User
 
     private List<EducationResponse> education;
     private List<WorkExperienceResponse> workExperience;
@@ -59,6 +60,7 @@ public class JobSeekerResponse {
                 .availability(jobSeeker.getAvailability())
                 .createdAt(jobSeeker.getCreatedAt())
                 .updatedAt(jobSeeker.getUpdatedAt())
+                .enabled(jobSeeker.getUser() == null || jobSeeker.getUser().isEnabled())
                 .education(jobSeeker.getEducationList() != null ?
                         jobSeeker.getEducationList().stream().map(EducationResponse::fromEntity).toList() : null)
                 .workExperience(jobSeeker.getWorkExperienceList() != null ?

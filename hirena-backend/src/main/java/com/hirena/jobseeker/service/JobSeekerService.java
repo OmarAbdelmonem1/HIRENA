@@ -1,5 +1,6 @@
 package com.hirena.jobseeker.service;
 
+import com.hirena.jobseeker.dto.AdminJobSeekerListResponse;
 import com.hirena.jobseeker.dto.CertificateRequest;
 import com.hirena.jobseeker.dto.EducationRequest;
 import com.hirena.jobseeker.dto.JobSeekerRequest;
@@ -18,6 +19,8 @@ import com.hirena.auth.security.CurrentUserProvider;
 import com.hirena.jobseeker.util.FileStorageService;
 import com.hirena.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +40,30 @@ public class JobSeekerService {
     @Transactional(readOnly = true)
     public JobSeekerResponse getMyProfile() {
         return JobSeekerResponse.fromEntity(getJobSeekerForCurrentUser());
+    }
+
+    /**
+     * Returns a paginated, lightweight projection of job seeker profiles for the
+     * admin "Users" list screen. Full profile details (education, work experience,
+     * certificates, skills, cv) are intentionally omitted here – see
+     * {@link #getJobSeekerById(Long)} for the single-user detail view.
+     */
+    @Transactional(readOnly = true)
+    public Page<AdminJobSeekerListResponse> getAllJobSeekers(Pageable pageable) {
+        return jobSeekerRepository.findAll(pageable)
+                .map(AdminJobSeekerListResponse::fromEntity);
+    }
+
+    /**
+     * Returns one job seeker's full profile by its profile id for admin management screens.
+     */
+    @Transactional(readOnly = true)
+    public JobSeekerResponse getJobSeekerById(Long id) {
+        JobSeeker jobSeeker = jobSeekerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "JobSeeker profile not found with id: " + id));
+
+        return JobSeekerResponse.fromEntity(jobSeeker);
     }
 
     public JobSeekerResponse createMyProfile(JobSeekerRequest request) {

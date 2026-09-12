@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/jobseeker")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class JobSeekerController {
 
@@ -20,25 +20,25 @@ public class JobSeekerController {
 
     // ── Profile ───────────────────────────────────────────────────────────
 
-    @GetMapping("/profile")
+    @GetMapping("/jobseeker/profile")
     public ResponseEntity<JobSeekerResponse> getMyProfile() {
         return ResponseEntity.ok(jobSeekerService.getMyProfile());
     }
 
-    @PostMapping("/profile")
+    @PostMapping("/jobseeker/profile")
     public ResponseEntity<JobSeekerResponse> createMyProfile(
             @Valid @RequestBody JobSeekerRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(jobSeekerService.createMyProfile(request));
     }
 
-    @PutMapping("/profile")
+    @PutMapping("/jobseeker/profile")
     public ResponseEntity<JobSeekerResponse> updateMyProfile(
             @Valid @RequestBody JobSeekerRequest request) {
         return ResponseEntity.ok(jobSeekerService.updateMyProfile(request));
     }
 
-    @DeleteMapping("/profile")
+    @DeleteMapping("/jobseeker/profile")
     public ResponseEntity<Void> deleteMyProfile() {
         jobSeekerService.deleteMyProfile();
         return ResponseEntity.noContent().build();
@@ -46,13 +46,13 @@ public class JobSeekerController {
 
     // ── Profile image ─────────────────────────────────────────────────────
 
-    @PostMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/jobseeker/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JobSeekerResponse> uploadProfileImage(
             @RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(jobSeekerService.uploadProfileImage(file));
     }
 
-    @DeleteMapping("/profile/image")
+    @DeleteMapping("/jobseeker/profile/image")
     public ResponseEntity<Void> deleteProfileImage() {
         jobSeekerService.deleteProfileImage();
         return ResponseEntity.noContent().build();
