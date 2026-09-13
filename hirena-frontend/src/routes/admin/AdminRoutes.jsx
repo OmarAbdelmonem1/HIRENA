@@ -1,15 +1,15 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from "react-router-dom";
 
-import RequireRole from '../RequireRole';
-import AdminLayout from '../../components/layout/AdminLayout';
+import RequireRole from "../RequireRole";
+import AdminLayout from "../../components/layout/AdminLayout";
 
-import Dashboard from '../../features/admin/pages/Dashboard/Dashboard';
+import Dashboard from "../../features/admin/pages/Dashboard/Dashboard";
 
-import JobSeekerRoutes from './JobSeekerRoutes';
-import CompanyRoutes from './CompanyRoutes';
-import JobRoutes from './JobRoutes';
-import Applications from './ApplicationRoutes';
-
+import JobSeekerRoutes from "./JobSeekerRoutes";
+import CompanyRoutes from "./CompanyRoutes";
+import JobRoutes from "./JobRoutes";
+import Applications from "./ApplicationRoutes";
+import AdminNotifications from "../../features/admin/pages/Notifications";
 
 export default function AdminRoutes() {
   return (
@@ -27,6 +27,7 @@ export default function AdminRoutes() {
         <Route path="companies/*" element={<CompanyRoutes />} />
         <Route path="jobs/*" element={<JobRoutes />} />
         <Route path="applications/*" element={<Applications />} />
+        <Route path="notifications" element={<AdminNotifications />} />
       </Route>
     </Routes>
   );

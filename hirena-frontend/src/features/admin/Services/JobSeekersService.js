@@ -5,7 +5,11 @@ import api from "../../../api/axios";
  * Backend: GET /api/admin/users?page=&size=&sort=
  * Returns a Spring Page object: { content, totalElements, totalPages, number, size, ... }
  */
-export const getAdminUsers = async ({ page = 0, size = 100, sort = "createdAt,desc" } = {}) => {
+export const getAdminUsers = async ({
+  page = 0,
+  size = 100,
+  sort = "createdAt,desc",
+} = {}) => {
   const response = await api.get("/api/admin/users", {
     params: { page, size, sort },
   });

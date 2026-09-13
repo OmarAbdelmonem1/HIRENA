@@ -1,6 +1,7 @@
 package com.hirena.company.dto;
 
 import com.hirena.company.entity.Company;
+import com.hirena.company.entity.Industry;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,7 +15,7 @@ public class CompanyResponse {
     private Long userId;
     private String companyName;
     private String description;
-    private String industry;
+    private Industry industry;
     private String companyPhone;
     private String website;
     private String address;

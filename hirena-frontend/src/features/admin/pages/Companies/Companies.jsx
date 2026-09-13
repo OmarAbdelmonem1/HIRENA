@@ -1,46 +1,47 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { COMPANY_INDUSTRIES } from "../../../../constants/company";
+import { useNavigate } from "react-router-dom";
 import {
   getAdminCompanies,
   createAdminCompany,
   updateAdminCompany,
   deleteAdminCompany,
-} from '../../Services/CompaniesService';
-import CompanyModal from './CompanyModal';
+} from "../../Services/CompaniesService";
+import CompanyModal from "./CompanyModal";
 
 const PAGE_SIZE = 10;
 
 function initials(name) {
-  if (!name) return '?';
+  if (!name) return "?";
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 function formatDate(value) {
-  if (!value) return '—';
+  if (!value) return "—";
   return new Date(value).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
-export default function Companies() {
+export function Companies() {
   const navigate = useNavigate();
 
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const [search, setSearch] = useState('');
-  const [industryFilter, setIndustryFilter] = useState('all');
-  const [cityFilter, setCityFilter] = useState('all');
-  const [sizeFilter, setSizeFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [industryFilter, setIndustryFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [sizeFilter, setSizeFilter] = useState("all");
   const [page, setPage] = useState(1);
 
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState("");
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,17 +54,20 @@ export default function Companies() {
 
   const loadCompanies = async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
       const data = await getAdminCompanies({ page: 0, size: 1000 });
       setCompanies(data.content || []);
     } catch (err) {
       setError(
-        err.response?.data?.message || err.message || 'Failed to load companies'
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load companies",
       );
     } finally {
       setLoading(false);
     }
+
   };
 
   useEffect(() => {
@@ -72,13 +76,12 @@ export default function Companies() {
 
   const showToast = (msg) => {
     setNotice(msg);
-    window.setTimeout(() => setNotice(''), 4000);
+    window.setTimeout(() => setNotice(""), 4000);
   };
 
   const industries = useMemo(() => {
-    const unique = new Set(companies.map((c) => c.industry).filter(Boolean));
-    return Array.from(unique).sort();
-  }, [companies]);
+    return COMPANY_INDUSTRIES.map(([value]) => value);
+  }, []);
 
   const cities = useMemo(() => {
     const unique = new Set(companies.map((c) => c.city).filter(Boolean));
@@ -94,10 +97,10 @@ export default function Companies() {
     const query = search.trim().toLowerCase();
 
     return companies.filter((c) => {
-      const name = (c.companyName || '').toLowerCase();
-      const industry = (c.industry || '').toLowerCase();
-      const city = (c.city || '').toLowerCase();
-      const country = (c.country || '').toLowerCase();
+      const name = (c.companyName || "").toLowerCase();
+      const industry = (c.industry || "").toLowerCase();
+      const city = (c.city || "").toLowerCase();
+      const country = (c.country || "").toLowerCase();
 
       const matchesSearch =
         !query ||
@@ -108,9 +111,10 @@ export default function Companies() {
         c.website?.toLowerCase().includes(query) ||
         c.companyPhone?.includes(query);
 
-      const matchesIndustry = industryFilter === 'all' || c.industry === industryFilter;
-      const matchesCity = cityFilter === 'all' || c.city === cityFilter;
-      const matchesSize = sizeFilter === 'all' || c.companySize === sizeFilter;
+      const matchesIndustry =
+        industryFilter === "all" || c.industry === industryFilter;
+      const matchesCity = cityFilter === "all" || c.city === cityFilter;
+      const matchesSize = sizeFilter === "all" || c.companySize === sizeFilter;
 
       return matchesSearch && matchesIndustry && matchesCity && matchesSize;
     });
@@ -120,16 +124,25 @@ export default function Companies() {
     setPage(1);
   }, [search, industryFilter, cityFilter, sizeFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / PAGE_SIZE));
-  const pageCompanies = filteredCompanies.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCompanies.length / PAGE_SIZE),
+  );
+  const pageCompanies = filteredCompanies.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const stats = useMemo(() => {
     const total = companies.length;
-    const distinctIndustries = new Set(companies.map((c) => c.industry).filter(Boolean)).size;
-    const distinctCities = new Set(companies.map((c) => c.city).filter(Boolean)).size;
+    const distinctIndustries = new Set(
+      companies.map((c) => c.industry).filter(Boolean),
+    ).size;
+    const distinctCities = new Set(companies.map((c) => c.city).filter(Boolean))
+      .size;
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const newThisWeek = companies.filter(
-      (c) => c.createdAt && new Date(c.createdAt).getTime() >= weekAgo
+      (c) => c.createdAt && new Date(c.createdAt).getTime() >= weekAgo,
     ).length;
 
     return { total, distinctIndustries, distinctCities, newThisWeek };
@@ -184,7 +197,11 @@ export default function Companies() {
       setDeleteTarget(null);
       await loadCompanies();
     } catch (err) {
-      showToast(err.response?.data?.message || err.message || 'Failed to delete company');
+      showToast(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to delete company",
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -219,19 +236,25 @@ export default function Companies() {
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Industries</span>
-            <strong className="tone-purple">{stats.distinctIndustries.toLocaleString()}</strong>
+            <strong className="tone-purple">
+              {stats.distinctIndustries.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Locations (Cities)</span>
-            <strong className="tone-green">{stats.distinctCities.toLocaleString()}</strong>
+            <strong className="tone-green">
+              {stats.distinctCities.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>New this week</span>
-            <strong className="tone-blue">{stats.newThisWeek.toLocaleString()}</strong>
+            <strong className="tone-blue">
+              {stats.newThisWeek.toLocaleString()}
+            </strong>
           </div>
         </article>
       </section>
@@ -248,7 +271,10 @@ export default function Companies() {
             />
           </div>
 
-          <select value={industryFilter} onChange={(e) => setIndustryFilter(e.target.value)}>
+          <select
+            value={industryFilter}
+            onChange={(e) => setIndustryFilter(e.target.value)}
+          >
             <option value="all">Industry: All</option>
             {industries.map((ind) => (
               <option key={ind} value={ind}>
@@ -257,7 +283,10 @@ export default function Companies() {
             ))}
           </select>
 
-          <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)}>
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+          >
             <option value="all">City: All</option>
             {cities.map((city) => (
               <option key={city} value={city}>
@@ -266,7 +295,10 @@ export default function Companies() {
             ))}
           </select>
 
-          <select value={sizeFilter} onChange={(e) => setSizeFilter(e.target.value)}>
+          <select
+            value={sizeFilter}
+            onChange={(e) => setSizeFilter(e.target.value)}
+          >
             <option value="all">Size: All</option>
             {sizes.map((s) => (
               <option key={s} value={s}>
@@ -277,7 +309,9 @@ export default function Companies() {
         </div>
 
         {error && <p className="table-message error">{error}</p>}
-        {loading && !error && <p className="table-message">Loading companies…</p>}
+        {loading && !error && (
+          <p className="table-message">Loading companies…</p>
+        )}
         {!loading && !error && filteredCompanies.length === 0 && (
           <p className="table-message">No companies match your filters.</p>
         )}
@@ -308,14 +342,14 @@ export default function Companies() {
                               alt=""
                               className="company-logo-thumbnail"
                               onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'grid';
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "grid";
                               }}
                             />
                           ) : null}
                           <div
                             className="app-avatar purple"
-                            style={{ display: c.logo ? 'none' : 'grid' }}
+                            style={{ display: c.logo ? "none" : "grid" }}
                           >
                             {initials(c.companyName)}
                           </div>
@@ -324,12 +358,16 @@ export default function Companies() {
                             <span className="user-subtext">
                               {c.website ? (
                                 <a
-                                  href={c.website.startsWith('http') ? c.website : `https://${c.website}`}
+                                  href={
+                                    c.website.startsWith("http")
+                                      ? c.website
+                                      : `https://${c.website}`
+                                  }
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  {c.website.replace(/^https?:\/\//, '')}
+                                  {c.website.replace(/^https?:\/\//, "")}
                                 </a>
                               ) : (
                                 `User #${c.userId}`
@@ -339,17 +377,23 @@ export default function Companies() {
                         </div>
                       </td>
                       <td>
-                        <span className="skill-chip">{c.industry || 'General'}</span>
+                        <span className="skill-chip">
+                          {c.industry || "General"}
+                        </span>
                       </td>
-                      <td>{[c.city, c.country].filter(Boolean).join(', ') || '—'}</td>
-                      <td>{c.companySize || '—'}</td>
-                      <td>{c.foundedYear || '—'}</td>
+                      <td>
+                        {[c.city, c.country].filter(Boolean).join(", ") || "—"}
+                      </td>
+                      <td>{c.companySize || "—"}</td>
+                      <td>{c.foundedYear || "—"}</td>
                       <td>{formatDate(c.createdAt)}</td>
                       <td className="actions-cell">
                         <button
                           className="more-button"
                           aria-label="Row actions"
-                          onClick={() => setOpenMenuId(openMenuId === c.id ? null : c.id)}
+                          onClick={() =>
+                            setOpenMenuId(openMenuId === c.id ? null : c.id)
+                          }
                         >
                           •••
                         </button>
@@ -399,7 +443,7 @@ export default function Companies() {
               {pageNumbers.map((n) => (
                 <button
                   key={n}
-                  className={n === page ? 'active' : ''}
+                  className={n === page ? "active" : ""}
                   onClick={() => setPage(n)}
                 >
                   {n}
@@ -434,15 +478,23 @@ export default function Companies() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="modal-container confirm-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-container confirm-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h3>Delete Company</h3>
-              <button className="icon-button" onClick={() => setDeleteTarget(null)}>
+              <button
+                className="icon-button"
+                onClick={() => setDeleteTarget(null)}
+              >
                 ✕
               </button>
             </div>
             <p className="confirm-text">
-              Are you sure you want to delete <strong>{deleteTarget.companyName}</strong> (ID: {deleteTarget.id})? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget.companyName}</strong> (ID: {deleteTarget.id}
+              )? This action cannot be undone.
             </p>
             <div className="modal-actions">
               <button
@@ -459,14 +511,20 @@ export default function Companies() {
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting…' : 'Delete Company'}
+                {isDeleting ? "Deleting…" : "Delete Company"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {notice && <div className="toast" role="status">{notice}</div>}
+      {notice && (
+        <div className="toast" role="status">
+          {notice}
+        </div>
+      )}
     </div>
   );
 }
+
+export default Companies;

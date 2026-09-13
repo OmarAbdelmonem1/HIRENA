@@ -66,7 +66,8 @@ public class JobService {
                 .status(JobStatus.PENDING)
                 .build();
 
-        return JobResponse.fromEntity(jobRepository.save(job));
+        Job saved = jobRepository.save(job);
+        return JobResponse.fromEntity(saved);
     }
 
     @Transactional(readOnly = true)
@@ -108,7 +109,8 @@ public class JobService {
         job.setStatus(JobStatus.PENDING);
         job.setRejectionReason(null);
 
-        return JobResponse.fromEntity(jobRepository.save(job));
+        Job saved = jobRepository.save(job);
+        return JobResponse.fromEntity(saved);
     }
 
     public void deleteJob(Long jobId) {
@@ -152,7 +154,8 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
     public JobResponse updateAdminJob(Long id, JobRequest request) {
         Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + id));
         job.setTitle(request.getTitle()); job.setDescription(request.getDescription()); job.setRequirements(request.getRequirements()); job.setLocation(request.getLocation()); job.setSalaryMin(request.getSalaryMin()); job.setSalaryMax(request.getSalaryMax()); job.setEmploymentType(request.getEmploymentType()); job.setExperienceRequired(request.getExperienceRequired()); job.setDeadline(request.getDeadline());
-        return JobResponse.fromEntity(jobRepository.save(job));
+        Job saved = jobRepository.save(job);
+        return JobResponse.fromEntity(saved);
     }
 
     public void deleteAdminJob(Long id) {
@@ -172,7 +175,8 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
 
         job.setStatus(JobStatus.APPROVED);
         job.setRejectionReason(null);
-        return JobResponse.fromEntity(jobRepository.save(job));
+        Job saved = jobRepository.save(job);
+        return JobResponse.fromEntity(saved);
     }
 
     public JobResponse rejectJob(Long jobId, AdminJobRejectionRequest request) {
@@ -187,7 +191,8 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
         if (request != null && request.getRejectionReason() != null) {
             job.setRejectionReason(request.getRejectionReason());
         }
-        return JobResponse.fromEntity(jobRepository.save(job));
+        Job saved = jobRepository.save(job);
+        return JobResponse.fromEntity(saved);
     }
 
     // ── Public / JobSeeker: approved jobs ────────────────────────────────

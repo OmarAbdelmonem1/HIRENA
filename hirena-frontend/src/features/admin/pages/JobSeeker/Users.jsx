@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAdminUsers } from '../../Services/JobSeekersService';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getAdminUsers } from "../../Services/JobSeekersService";
 
 const PAGE_SIZE = 10;
 
 function initials(firstName, lastName) {
-  const first = firstName?.[0] || '';
-  const last = lastName?.[0] || '';
-  return (first + last).toUpperCase() || '?';
+  const first = firstName?.[0] || "";
+  const last = lastName?.[0] || "";
+  return (first + last).toUpperCase() || "?";
 }
 
 export default function Users() {
@@ -15,21 +15,21 @@ export default function Users() {
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [cityFilter, setCityFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadUsers() {
       setLoading(true);
-      setError('');
+      setError("");
 
       try {
         // Backend has no server-side search/filter yet, so we pull a single
@@ -39,7 +39,9 @@ export default function Users() {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err.response?.data?.message || err.message || 'Failed to load users'
+            err.response?.data?.message ||
+              err.message ||
+              "Failed to load users",
           );
         }
       } finally {
@@ -62,7 +64,8 @@ export default function Users() {
     const query = search.trim().toLowerCase();
 
     return users.filter((user) => {
-      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
+      const fullName =
+        `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
       const matchesSearch =
         !query ||
         fullName.includes(query) ||
@@ -70,11 +73,11 @@ export default function Users() {
         user.currentJobTitle?.toLowerCase().includes(query);
 
       const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && user.enabled) ||
-        (statusFilter === 'blocked' && !user.enabled);
+        statusFilter === "all" ||
+        (statusFilter === "active" && user.enabled) ||
+        (statusFilter === "blocked" && !user.enabled);
 
-      const matchesCity = cityFilter === 'all' || user.city === cityFilter;
+      const matchesCity = cityFilter === "all" || user.city === cityFilter;
 
       return matchesSearch && matchesStatus && matchesCity;
     });
@@ -85,7 +88,10 @@ export default function Users() {
   }, [search, statusFilter, cityFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
-  const pageUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageUsers = filteredUsers.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const stats = useMemo(() => {
     const total = users.length;
@@ -93,7 +99,7 @@ export default function Users() {
     const blocked = users.filter((u) => !u.enabled).length;
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const newThisWeek = users.filter(
-      (u) => u.createdAt && new Date(u.createdAt).getTime() >= weekAgo
+      (u) => u.createdAt && new Date(u.createdAt).getTime() >= weekAgo,
     ).length;
 
     return { total, active, blocked, newThisWeek };
@@ -127,8 +133,10 @@ export default function Users() {
         <button
           className="primary-button"
           onClick={() => {
-            setNotice('Add user is not available yet — no backend endpoint exists for this action.');
-            window.setTimeout(() => setNotice(''), 4000);
+            setNotice(
+              "Add user is not available yet — no backend endpoint exists for this action.",
+            );
+            window.setTimeout(() => setNotice(""), 4000);
           }}
         >
           <span>＋</span>Add user
@@ -145,19 +153,25 @@ export default function Users() {
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Active</span>
-            <strong className="tone-green">{stats.active.toLocaleString()}</strong>
+            <strong className="tone-green">
+              {stats.active.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Blocked</span>
-            <strong className="tone-red">{stats.blocked.toLocaleString()}</strong>
+            <strong className="tone-red">
+              {stats.blocked.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>New this week</span>
-            <strong className="tone-blue">{stats.newThisWeek.toLocaleString()}</strong>
+            <strong className="tone-blue">
+              {stats.newThisWeek.toLocaleString()}
+            </strong>
           </div>
         </article>
       </section>
@@ -174,13 +188,19 @@ export default function Users() {
             />
           </div>
 
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="all">Status: All</option>
             <option value="active">Active</option>
             <option value="blocked">Blocked</option>
           </select>
 
-          <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)}>
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+          >
             <option value="all">City: All</option>
             {cities.map((city) => (
               <option key={city} value={city}>
@@ -222,16 +242,21 @@ export default function Users() {
                               {user.firstName} {user.lastName}
                             </strong>
                             <span className="user-subtext">
-                              {user.currentJobTitle || 'No title set'}
+                              {user.currentJobTitle || "No title set"}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td>{user.email}</td>
-                      <td>{[user.city, user.country].filter(Boolean).join(', ') || '—'}</td>
                       <td>
-                        <span className={`status-badge ${user.enabled ? 'green' : 'red'}`}>
-                          {user.enabled ? 'Active' : 'Blocked'}
+                        {[user.city, user.country].filter(Boolean).join(", ") ||
+                          "—"}
+                      </td>
+                      <td>
+                        <span
+                          className={`status-badge ${user.enabled ? "green" : "red"}`}
+                        >
+                          {user.enabled ? "Active" : "Blocked"}
                         </span>
                       </td>
                       <td className="actions-cell">
@@ -239,7 +264,9 @@ export default function Users() {
                           className="more-button"
                           aria-label="Row actions"
                           onClick={() =>
-                            setOpenMenuId(openMenuId === user.id ? null : user.id)
+                            setOpenMenuId(
+                              openMenuId === user.id ? null : user.id,
+                            )
                           }
                         >
                           •••
@@ -274,7 +301,7 @@ export default function Users() {
               {pageNumbers.map((n) => (
                 <button
                   key={n}
-                  className={n === page ? 'active' : ''}
+                  className={n === page ? "active" : ""}
                   onClick={() => setPage(n)}
                 >
                   {n}
@@ -291,7 +318,11 @@ export default function Users() {
           </>
         )}
       </section>
-      {notice && <div className="toast" role="status">{notice}</div>}
+      {notice && (
+        <div className="toast" role="status">
+          {notice}
+        </div>
+      )}
     </div>
   );
 }

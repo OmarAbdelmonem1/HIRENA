@@ -1,21 +1,17 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 
-import { login as loginService, register as registerService } from '../features/auth/authService';
+import {
+  login as loginService,
+  register as registerService,
+} from "../features/auth/authService";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(
-    () => localStorage.getItem('token')
-  );
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('auth_user');
+    const savedUser = localStorage.getItem("auth_user");
 
     try {
       return savedUser ? JSON.parse(savedUser) : null;
@@ -39,15 +35,9 @@ export function AuthProvider({ children }) {
       role: data.role,
     };
 
-    localStorage.setItem('token', data.token);
-    localStorage.setItem(
-      'tokenType',
-      data.tokenType || 'Bearer'
-    );
-    localStorage.setItem(
-      'auth_user',
-      JSON.stringify(userData)
-    );
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("tokenType", data.tokenType || "Bearer");
+    localStorage.setItem("auth_user", JSON.stringify(userData));
 
     setToken(data.token);
     setUser(userData);
@@ -63,18 +53,18 @@ export function AuthProvider({ children }) {
       role: data.role,
     };
 
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('tokenType', data.tokenType || 'Bearer');
-    localStorage.setItem('auth_user', JSON.stringify(userData));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("tokenType", data.tokenType || "Bearer");
+    localStorage.setItem("auth_user", JSON.stringify(userData));
     setToken(data.token);
     setUser(userData);
     return userData;
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('tokenType');
-    localStorage.removeItem('auth_user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenType");
+    localStorage.removeItem("auth_user");
 
     setToken(null);
     setUser(null);

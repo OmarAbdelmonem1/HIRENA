@@ -58,11 +58,17 @@ export default function Applications() {
 
       try {
         // زي صفحة Users: نجيب دفعة كبيرة ونعمل search/filter/pagination على الكلاينت
-        const data = await getAllApplications({ page: 0, size: 1000, sort: "appliedAt,desc" });
+        const data = await getAllApplications({
+          page: 0,
+          size: 1000,
+          sort: "appliedAt,desc",
+        });
         if (!cancelled) setApplications(data.content || []);
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load applications");
+          setError(
+            err instanceof Error ? err.message : "Failed to load applications",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -76,7 +82,11 @@ export default function Applications() {
   }, []);
 
   const jobs = useMemo(() => {
-    const unique = new Set(applications.map((a) => a.jobTitle).filter((title): title is string => Boolean(title)));
+    const unique = new Set(
+      applications
+        .map((a) => a.jobTitle)
+        .filter((title): title is string => Boolean(title)),
+    );
     return Array.from(unique).sort();
   }, [applications]);
 
@@ -84,7 +94,8 @@ export default function Applications() {
     const query = search.trim().toLowerCase();
 
     return applications.filter((app) => {
-      const fullName = `${app.jobSeekerFirstName || ""} ${app.jobSeekerLastName || ""}`.toLowerCase();
+      const fullName =
+        `${app.jobSeekerFirstName || ""} ${app.jobSeekerLastName || ""}`.toLowerCase();
       const matchesSearch =
         !query ||
         fullName.includes(query) ||
@@ -92,7 +103,8 @@ export default function Applications() {
         app.jobTitle?.toLowerCase().includes(query) ||
         app.companyName?.toLowerCase().includes(query);
 
-      const matchesStatus = statusFilter === "all" || app.status === statusFilter.toUpperCase();
+      const matchesStatus =
+        statusFilter === "all" || app.status === statusFilter.toUpperCase();
       const matchesJob = jobFilter === "all" || app.jobTitle === jobFilter;
 
       return matchesSearch && matchesStatus && matchesJob;
@@ -103,12 +115,20 @@ export default function Applications() {
     setPage(1);
   }, [search, statusFilter, jobFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredApplications.length / PAGE_SIZE));
-  const pageApplications = filteredApplications.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredApplications.length / PAGE_SIZE),
+  );
+  const pageApplications = filteredApplications.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const stats = useMemo(() => {
     const total = applications.length;
-    const pending = applications.filter((a) => a.status === "PENDING" || a.status === "REVIEWING").length;
+    const pending = applications.filter(
+      (a) => a.status === "PENDING" || a.status === "REVIEWING",
+    ).length;
     const accepted = applications.filter((a) => a.status === "ACCEPTED").length;
     const rejected = applications.filter((a) => a.status === "REJECTED").length;
     return { total, pending, accepted, rejected };
@@ -151,19 +171,25 @@ export default function Applications() {
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Pending / Reviewing</span>
-            <strong className="tone-blue">{stats.pending.toLocaleString()}</strong>
+            <strong className="tone-blue">
+              {stats.pending.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Accepted</span>
-            <strong className="tone-green">{stats.accepted.toLocaleString()}</strong>
+            <strong className="tone-green">
+              {stats.accepted.toLocaleString()}
+            </strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
             <span>Rejected</span>
-            <strong className="tone-red">{stats.rejected.toLocaleString()}</strong>
+            <strong className="tone-red">
+              {stats.rejected.toLocaleString()}
+            </strong>
           </div>
         </article>
       </section>
@@ -180,7 +206,10 @@ export default function Applications() {
             />
           </div>
 
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="all">Status: All</option>
             <option value="pending">Pending</option>
             <option value="reviewing">Reviewing</option>
@@ -188,7 +217,10 @@ export default function Applications() {
             <option value="rejected">Rejected</option>
           </select>
 
-          <select value={jobFilter} onChange={(e) => setJobFilter(e.target.value)}>
+          <select
+            value={jobFilter}
+            onChange={(e) => setJobFilter(e.target.value)}
+          >
             <option value="all">Job: All</option>
             {jobs.map((job) => (
               <option key={job} value={job}>
@@ -199,7 +231,9 @@ export default function Applications() {
         </div>
 
         {error && <p className="table-message error">{error}</p>}
-        {loading && !error && <p className="table-message">Loading applications…</p>}
+        {loading && !error && (
+          <p className="table-message">Loading applications…</p>
+        )}
         {!loading && !error && filteredApplications.length === 0 && (
           <p className="table-message">No applications match your filters.</p>
         )}
@@ -224,27 +258,42 @@ export default function Applications() {
                       <td>
                         <div className="user-cell">
                           <div className="app-avatar blue">
-                            {initials(app.jobSeekerFirstName, app.jobSeekerLastName)}
+                            {initials(
+                              app.jobSeekerFirstName,
+                              app.jobSeekerLastName,
+                            )}
                           </div>
                           <div>
                             <strong>
                               {app.jobSeekerFirstName} {app.jobSeekerLastName}
                             </strong>
-                            <span className="user-subtext">{app.jobSeekerEmail}</span>
+                            <span className="user-subtext">
+                              {app.jobSeekerEmail}
+                            </span>
                           </div>
                         </div>
                       </td>
                       <td>{app.jobTitle}</td>
                       <td>{app.companyName}</td>
                       <td>
-                        <span className={`status-badge ${statusTone(app.status)}`}>{app.status}</span>
+                        <span
+                          className={`status-badge ${statusTone(app.status)}`}
+                        >
+                          {app.status}
+                        </span>
                       </td>
-                      <td>{app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : "—"}</td>
+                      <td>
+                        {app.appliedAt
+                          ? new Date(app.appliedAt).toLocaleDateString()
+                          : "—"}
+                      </td>
                       <td className="actions-cell">
                         <button
                           className="more-button"
                           aria-label="Row actions"
-                          onClick={() => setOpenMenuId(openMenuId === app.id ? null : app.id)}
+                          onClick={() =>
+                            setOpenMenuId(openMenuId === app.id ? null : app.id)
+                          }
                         >
                           •••
                         </button>
@@ -276,7 +325,11 @@ export default function Applications() {
                 ‹
               </button>
               {pageNumbers.map((n) => (
-                <button key={n} className={n === page ? "active" : ""} onClick={() => setPage(n)}>
+                <button
+                  key={n}
+                  className={n === page ? "active" : ""}
+                  onClick={() => setPage(n)}
+                >
                   {n}
                 </button>
               ))}

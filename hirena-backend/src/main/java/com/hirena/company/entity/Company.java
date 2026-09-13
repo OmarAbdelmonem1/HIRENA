@@ -31,7 +31,7 @@ public class Company {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String industry;
+    private Industry industry;
 
     @Column(name = "company_phone")
     private String companyPhone;

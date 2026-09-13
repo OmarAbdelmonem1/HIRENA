@@ -18,6 +18,7 @@ import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
 import com.hirena.jobseeker.entity.CV;
 import lombok.RequiredArgsConstructor;
+import com.hirena.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -37,6 +38,7 @@ public class ApplicationService {
     private final JobSeekerRepository jobSeekerRepository;
     private final CompanyService companyService;
     private final CurrentUserProvider currentUserProvider;
+    private final NotificationService notificationService;
 
     // ── JobSeeker: apply ──────────────────────────────────────────────────
 
@@ -61,7 +63,9 @@ public class ApplicationService {
                 .status(ApplicationStatus.PENDING)
                 .build();
 
-        return ApplicationResponse.fromEntity(applicationRepository.save(application));
+        Application saved = applicationRepository.save(application);
+        notificationService.applicationSubmitted(saved);
+        return ApplicationResponse.fromEntity(saved);
     }
 
     // ── JobSeeker: own applications ───────────────────────────────────────
@@ -106,11 +110,11 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public ApplicationResponse getApplicationForJob(Long jobId, Long applicationId) {
         assertJobOwnedByCurrentCompany(jobId);
         Application application = applicationRepository.findByIdAndJobId(applicationId, jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + applicationId));
+        recordCompanyView(application);
         return ApplicationResponse.fromEntity(application);
     }
 
@@ -121,9 +125,14 @@ public class ApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + applicationId));
 
         validateStatusTransition(application.getStatus(), request.getStatus());
+        boolean changed = application.getStatus() != request.getStatus();
 
         application.setStatus(request.getStatus());
-        return ApplicationResponse.fromEntity(applicationRepository.save(application));
+        Application saved = applicationRepository.save(application);
+        if (changed) {
+            notificationService.applicationStatusChanged(saved);
+        }
+        return ApplicationResponse.fromEntity(saved);
     }
 
     @Transactional(readOnly = true)
@@ -135,12 +144,12 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public ApplicationResponse getCompanyApplication(Long applicationId) {
         Company company = companyService.getCompanyForCurrentUser();
         Application application = applicationRepository.findByIdAndJobCompanyId(applicationId, company.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Application not found or does not belong to your company"));
+        recordCompanyView(application);
         return ApplicationResponse.fromEntity(application);
     }
 
@@ -165,8 +174,21 @@ public class ApplicationService {
                         "Application not found or does not belong to your company"));
 
         validateStatusTransition(application.getStatus(), request.getStatus());
+        boolean changed = application.getStatus() != request.getStatus();
         application.setStatus(request.getStatus());
-        return ApplicationResponse.fromEntity(applicationRepository.save(application));
+        Application saved = applicationRepository.save(application);
+        if (changed) {
+            notificationService.applicationStatusChanged(saved);
+        }
+        return ApplicationResponse.fromEntity(saved);
+    }
+
+    private void recordCompanyView(Application application) {
+        if (application.getCompanyViewedAt() == null) {
+            application.setCompanyViewedAt(java.time.LocalDateTime.now());
+            applicationRepository.save(application);
+            notificationService.applicationViewed(application);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

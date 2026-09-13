@@ -4,7 +4,6 @@ import logoFull from "../../assets/hirena-logo-full.svg";
 export default function AdminSidebar() {
   return (
     <aside className="admin-sidebar">
-
       {/* Logo */}
       <div className="sidebar-logo">
         <img src={logoFull} alt="HIRENA" className="sidebar-logo-image" />
@@ -118,7 +117,6 @@ export default function AdminSidebar() {
           <span>Logout</span>
         </button>
       </div>
-
     </aside>
   );
 }

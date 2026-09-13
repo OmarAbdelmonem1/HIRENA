@@ -4,6 +4,7 @@ import com.hirena.auth.security.CurrentUserProvider;
 import com.hirena.company.dto.CompanyRequest;
 import com.hirena.company.dto.CompanyResponse;
 import com.hirena.company.entity.Company;
+import com.hirena.company.entity.Industry;
 import com.hirena.company.repository.CompanyRepository;
 import com.hirena.exception.BadRequestException;
 import com.hirena.exception.ResourceNotFoundException;
@@ -87,7 +88,7 @@ public class CompanyService {
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("companyName")), pattern));
             }
             if (industry != null && !industry.isBlank()) {
-                predicate = cb.and(predicate, cb.equal(cb.lower(root.get("industry")), industry.trim().toLowerCase()));
+                predicate = cb.and(predicate, cb.equal(root.get("industry"), Industry.fromValue(industry.trim())));
             }
             return predicate;
         };

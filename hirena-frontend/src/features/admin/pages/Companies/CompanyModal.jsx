@@ -1,46 +1,54 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import { COMPANY_INDUSTRIES } from "../../../../constants/company";
 
 const INITIAL_FORM = {
-  companyName: '',
-  userId: '',
-  industry: '',
-  companyPhone: '',
-  website: '',
-  address: '',
-  city: '',
-  country: '',
-  foundedYear: '',
-  companySize: '',
-  logo: '',
-  description: '',
+  companyName: "",
+  userId: "",
+  industry: "",
+  companyPhone: "",
+  website: "",
+  address: "",
+  city: "",
+  country: "",
+  foundedYear: "",
+  companySize: "",
+  logo: "",
+  description: "",
 };
 
-export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = null, isSubmitting = false }) {
+export default function CompanyModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData = null,
+  isSubmitting = false,
+}) {
   const [formData, setFormData] = useState(INITIAL_FORM);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const isEdit = Boolean(initialData?.id);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        companyName: initialData.companyName || '',
-        userId: initialData.userId != null ? initialData.userId : '',
-        industry: initialData.industry || '',
-        companyPhone: initialData.companyPhone || '',
-        website: initialData.website || '',
-        address: initialData.address || '',
-        city: initialData.city || '',
-        country: initialData.country || '',
-        foundedYear: initialData.foundedYear != null ? initialData.foundedYear : '',
-        companySize: initialData.companySize || '',
-        logo: initialData.logo || '',
-        description: initialData.description || '',
+        companyName: initialData.companyName || "",
+        userId: initialData.userId != null ? initialData.userId : "",
+        industry: initialData.industry || "",
+        companyPhone: initialData.companyPhone || "",
+        website: initialData.website || "",
+        address: initialData.address || "",
+        city: initialData.city || "",
+        country: initialData.country || "",
+        foundedYear:
+          initialData.foundedYear != null ? initialData.foundedYear : "",
+        companySize: initialData.companySize || "",
+        logo: initialData.logo || "",
+        description: initialData.description || "",
       });
     } else {
       setFormData(INITIAL_FORM);
     }
-    setError('');
+    setError("");
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
@@ -52,15 +60,15 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!formData.companyName.trim()) {
-      setError('Company name is required.');
+      setError("Company name is required.");
       return;
     }
 
     if (!isEdit && (!formData.userId || isNaN(Number(formData.userId)))) {
-      setError('A valid User ID is required.');
+      setError("A valid User ID is required.");
       return;
     }
 
@@ -83,16 +91,29 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = 
     try {
       await onSubmit(payload);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Operation failed');
+      setError(
+        err.response?.data?.message || err.message || "Operation failed",
+      );
     }
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+    <div
+      className="modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{isEdit ? 'Edit Company' : 'Add New Company'}</h3>
-          <button className="icon-button" onClick={onClose} aria-label="Close modal">✕</button>
+          <h3>{isEdit ? "Edit Company" : "Add New Company"}</h3>
+          <button
+            className="icon-button"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
         </div>
 
         {error && <div className="modal-error">{error}</div>}
@@ -113,7 +134,9 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = 
             </div>
 
             <div className="form-group">
-              <label htmlFor="userId">User ID {isEdit ? '(Read-only)' : '*'}</label>
+              <label htmlFor="userId">
+                User ID {isEdit ? "(Read-only)" : "*"}
+              </label>
               <input
                 id="userId"
                 name="userId"
@@ -128,14 +151,17 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = 
 
             <div className="form-group">
               <label htmlFor="industry">Industry</label>
-              <input
+              <select
                 id="industry"
                 name="industry"
-                type="text"
-                placeholder="e.g. Software, Finance"
-                value={formData.industry}
+                value={formData.industry || ""}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Select industry</option>
+                {COMPANY_INDUSTRIES.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -254,11 +280,24 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, initialData = 
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="secondary-button" onClick={onClose} disabled={isSubmitting}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
-            <button type="submit" className="primary-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : isEdit ? 'Update Company' : 'Create Company'}
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Saving…"
+                : isEdit
+                  ? "Update Company"
+                  : "Create Company"}
             </button>
           </div>
         </form>

@@ -35,7 +35,11 @@ export default function ApplicationDetails() {
         if (!cancelled) setApplication(data);
       } catch (err) {
         if (!cancelled) {
-          setError(err.response?.data?.message || err.message || "Failed to load application");
+          setError(
+            err.response?.data?.message ||
+              err.message ||
+              "Failed to load application",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -50,7 +54,8 @@ export default function ApplicationDetails() {
 
   if (loading) return <p className="table-message">Loading application…</p>;
   if (error) return <p className="table-message error">{error}</p>;
-  if (!application) return <p className="table-message">Application not found.</p>;
+  if (!application)
+    return <p className="table-message">Application not found.</p>;
 
   return (
     <div className="admin-page">
@@ -59,15 +64,22 @@ export default function ApplicationDetails() {
           <p className="eyebrow">Applications</p>
           <h1>Application #{application.id}</h1>
         </div>
-        <button className="primary-button" onClick={() => navigate("/admin/applications")}>
+        <button
+          className="primary-button"
+          onClick={() => navigate("/admin/applications")}
+        >
           ← Back to applications
         </button>
       </header>
 
       <section className="panel">
-        <div className="filters-row" style={{ justifyContent: "space-between" }}>
-          <span className={`status-badge ${statusTone(application.status)}`}>{application.status}</span>
-
+        <div
+          className="filters-row"
+          style={{ justifyContent: "space-between" }}
+        >
+          <span className={`status-badge ${statusTone(application.status)}`}>
+            {application.status}
+          </span>
         </div>
 
         <div className="metric-grid" style={{ marginTop: "16px" }}>
@@ -106,7 +118,11 @@ export default function ApplicationDetails() {
 
         <div style={{ marginTop: "16px" }}>
           <h3>Applied at</h3>
-          <p>{application.appliedAt ? new Date(application.appliedAt).toLocaleString() : "—"}</p>
+          <p>
+            {application.appliedAt
+              ? new Date(application.appliedAt).toLocaleString()
+              : "—"}
+          </p>
         </div>
       </section>
     </div>

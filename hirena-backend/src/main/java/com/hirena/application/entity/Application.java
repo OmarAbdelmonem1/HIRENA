@@ -53,4 +53,7 @@ public class Application {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "company_viewed_at")
+    private LocalDateTime companyViewedAt;
 }

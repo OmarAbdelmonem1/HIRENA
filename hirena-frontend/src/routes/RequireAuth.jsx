@@ -1,6 +1,6 @@
-import React from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider';
+import React from "react";
+import { useLocation, Navigate } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function RequireAuth({ children }) {
   const auth = useAuth();

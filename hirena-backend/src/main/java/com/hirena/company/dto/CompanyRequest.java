@@ -2,6 +2,7 @@ package com.hirena.company.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.hirena.company.entity.Industry;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +17,7 @@ public class CompanyRequest {
     @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
 
-    private String industry;
+    private Industry industry;
     private String companyPhone;
     private String website;
     private String address;
