@@ -5,13 +5,9 @@ import StatusBadge from "../../../../components/ui/StatusBadge";
 import LoadingState from "../../../../components/ui/LoadingState";
 import ErrorMessage from "../../../../components/ui/ErrorMessage";
 import EmptyState from "../../../../components/ui/EmptyState";
+import Pagination from "../../../../components/ui/Pagination";
+import Avatar from "../../../../components/ui/Avatar";
 const PAGE_SIZE = 10;
-
-function initials(firstName, lastName) {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
-  return (first + last).toUpperCase() || "?";
-}
 
 export default function Applications() {
   const navigate = useNavigate();
@@ -109,17 +105,6 @@ export default function Applications() {
     const rejected = applications.filter((a) => a.status === "REJECTED").length;
     return { total, pending, accepted, rejected };
   }, [applications]);
-
-  const pageNumbers = useMemo(() => {
-    const maxVisible = 5;
-    let start = Math.max(1, page - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    start = Math.max(1, end - maxVisible + 1);
-
-    const pages = [];
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  }, [page, totalPages]);
 
   return (
     <div className="admin-page">
@@ -231,12 +216,11 @@ export default function Applications() {
                     <tr key={app.id}>
                       <td>
                         <div className="user-cell">
-                          <div className="app-avatar blue">
-                            {initials(
-                              app.jobSeekerFirstName,
-                              app.jobSeekerLastName,
-                            )}
-                          </div>
+                          <Avatar
+                            firstName={app.jobSeekerFirstName}
+                            lastName={app.jobSeekerLastName}
+                            className="app-avatar blue"
+                          />
                           <div>
                             <strong>
                               {app.jobSeekerFirstName} {app.jobSeekerLastName}
@@ -286,31 +270,11 @@ export default function Applications() {
               </table>
             </div>
 
-            <div className="pagination">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              {pageNumbers.map((n) => (
-                <button
-                  key={n}
-                  className={n === page ? "active" : ""}
-                  onClick={() => setPage(n)}
-                >
-                  {n}
-                </button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="Next page"
-              >
-                ›
-              </button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
       </section>

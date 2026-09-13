@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import useNotice from "../../../../hooks/useNotice";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   approveAdminJob,
@@ -21,7 +22,7 @@ export default function JobDetails() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice: setNotice } = useNotice();
   const load = async () => {
     try {
       setData(await getAdminJob(id));

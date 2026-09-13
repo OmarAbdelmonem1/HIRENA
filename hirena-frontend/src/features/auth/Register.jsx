@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../providers/AuthProvider";
+import useForm from "../../hooks/useForm";
 
 export default function Register() {
-  const [form, setForm] = useState({
+  const { values: form, handleChange } = useForm({
     email: "",
     password: "",
     confirmation: "",
@@ -66,7 +67,8 @@ export default function Register() {
             <input
               type="email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              name="email"
+              onChange={handleChange}
               placeholder="you@example.com"
               required
             />
@@ -77,7 +79,8 @@ export default function Register() {
               type="password"
               minLength="6"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              name="password"
+              onChange={handleChange}
               placeholder="At least 6 characters"
               required
             />
@@ -88,9 +91,8 @@ export default function Register() {
               type="password"
               minLength="6"
               value={form.confirmation}
-              onChange={(e) =>
-                setForm({ ...form, confirmation: e.target.value })
-              }
+              name="confirmation"
+              onChange={handleChange}
               placeholder="Repeat your password"
               required
             />

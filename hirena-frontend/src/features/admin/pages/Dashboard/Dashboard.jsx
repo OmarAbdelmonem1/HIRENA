@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import useNotice from "../../../../hooks/useNotice";
 import { useAuth } from "../../../../providers/AuthProvider";
 import { getAdminDashboard } from "../../services/adminDashboardService";
 
@@ -37,7 +38,7 @@ function MetricIcon({ type }) {
 
 export default function Dashboard() {
   const auth = useAuth();
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice } = useNotice(3500);
 
   const [metrics, setMetrics] = useState([
     {
@@ -152,8 +153,7 @@ export default function Dashboard() {
   }, []);
 
   const handleAction = (label) => {
-    setNotice(`${label} is ready to connect when the backend is available.`);
-    window.setTimeout(() => setNotice(""), 3500);
+    showNotice(`${label} is ready to connect when the backend is available.`);
   };
 
   const todayLabel = new Date().toLocaleDateString(undefined, {

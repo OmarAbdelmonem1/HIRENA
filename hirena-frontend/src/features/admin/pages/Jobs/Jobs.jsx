@@ -9,6 +9,8 @@ import {
   rejectAdminJob,
 } from "../../services/jobsService";
 import { getAdminCompanies } from "../../services/companiesService";
+import Pagination from "../../../../components/ui/Pagination";
+import useNotice from "../../../../hooks/useNotice";
 
 const statusValues = ["PENDING", "APPROVED", "REJECTED", "CLOSED"];
 const types = [
@@ -45,7 +47,7 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [target, setTarget] = useState(null);
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice: toast } = useNotice(3500);
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -80,10 +82,6 @@ export default function Jobs() {
   const filter = (key, value) => {
     setFilters((f) => ({ ...f, [key]: value }));
     setPage(0);
-  };
-  const toast = (message) => {
-    setNotice(message);
-    window.setTimeout(() => setNotice(""), 3500);
   };
   const moderate = async (job, action) => {
     try {
@@ -296,28 +294,11 @@ export default function Jobs() {
                 </tbody>
               </table>
             </div>
-            <div className="pagination">
-              <button disabled={page === 0} onClick={() => setPage(page - 1)}>
-                ‹
-              </button>
-              {Array.from({ length: pages }, (_, i) => i)
-                .slice(Math.max(0, page - 2), page + 3)
-                .map((p) => (
-                  <button
-                    key={p}
-                    className={p === page ? "active" : ""}
-                    onClick={() => setPage(p)}
-                  >
-                    {p + 1}
-                  </button>
-                ))}
-              <button
-                disabled={page >= pages - 1}
-                onClick={() => setPage(page + 1)}
-              >
-                ›
-              </button>
-            </div>
+            <Pagination
+              page={page + 1}
+              totalPages={pages}
+              onPageChange={(nextPage) => setPage(nextPage - 1)}
+            />
           </>
         )}
       </section>

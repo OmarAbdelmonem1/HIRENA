@@ -8,24 +8,11 @@ import {
   deleteAdminCompany,
 } from "../../services/companiesService";
 import CompanyModal from "./CompanyModal";
+import { formatDate, getInitials } from "../../../../utils/formatters";
+import Pagination from "../../../../components/ui/Pagination";
+import useNotice from "../../../../hooks/useNotice";
 
 const PAGE_SIZE = 10;
-
-function initials(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export function Companies() {
   const navigate = useNavigate();
@@ -41,7 +28,7 @@ export function Companies() {
   const [page, setPage] = useState(1);
 
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice: showToast } = useNotice();
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,11 +60,6 @@ export function Companies() {
   useEffect(() => {
     loadCompanies();
   }, []);
-
-  const showToast = (msg) => {
-    setNotice(msg);
-    window.setTimeout(() => setNotice(""), 4000);
-  };
 
   const industries = useMemo(() => {
     return COMPANY_INDUSTRIES.map(([value]) => value);
@@ -147,17 +129,6 @@ export function Companies() {
 
     return { total, distinctIndustries, distinctCities, newThisWeek };
   }, [companies]);
-
-  const pageNumbers = useMemo(() => {
-    const maxVisible = 5;
-    let start = Math.max(1, page - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    start = Math.max(1, end - maxVisible + 1);
-
-    const pages = [];
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  }, [page, totalPages]);
 
   const handleOpenAdd = () => {
     setEditingCompany(null);
@@ -351,7 +322,7 @@ export function Companies() {
                             className="app-avatar purple"
                             style={{ display: c.logo ? "none" : "grid" }}
                           >
-                            {initials(c.companyName)}
+                            {getInitials(c.companyName)}
                           </div>
                           <div>
                             <strong>{c.companyName}</strong>
@@ -432,31 +403,11 @@ export function Companies() {
               </table>
             </div>
 
-            <div className="pagination">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              {pageNumbers.map((n) => (
-                <button
-                  key={n}
-                  className={n === page ? "active" : ""}
-                  onClick={() => setPage(n)}
-                >
-                  {n}
-                </button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="Next page"
-              >
-                ›
-              </button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
       </section>

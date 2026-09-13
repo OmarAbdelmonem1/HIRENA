@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getJobs } from "../services/jobseekerService";
 import { JobCard } from "./Home";
 import { COUNTRIES, JOB_CATEGORIES } from "../../../constants/jobSeekerProfile";
+import useAsyncRequest from "../../../hooks/useAsyncRequest";
+import useForm from "../../../hooks/useForm";
 
 const EMPLOYMENT_TYPES = [
   ["", "All employment types"],
@@ -17,11 +19,14 @@ const EMPLOYMENT_TYPES = [
 function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [page, setPage] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [filters, setFilters] = useState({
+  const {
+    data: page,
+    loading,
+    error,
+    execute: loadJobs,
+  } = useAsyncRequest(getJobs, { initialData: { content: [] } });
+  const jobs = page?.content || [];
+  const { values: filters, setValues: setFilters, handleChange: change } = useForm({
     keyword: searchParams.get("keyword") || "",
     location: searchParams.get("location") || "",
     employmentType: searchParams.get("employmentType") || "",
@@ -30,35 +35,17 @@ function Jobs() {
     sort: searchParams.get("sort") || "createdAt,desc",
   });
 
-  const load = (nextFilters = filters) => {
-    setLoading(true);
-    setError("");
-    getJobs({
+  const load = (nextFilters = filters) =>
+    loadJobs({
       ...nextFilters,
       page: Number(searchParams.get("page") || 0),
       size: 12,
       sort: nextFilters.sort,
-    })
-      .then((data) => {
-        setJobs(data.content || []);
-        setPage(data);
-      })
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load jobs."),
-      )
-      .finally(() => setLoading(false));
-  };
+    }).catch(() => {});
 
   useEffect(() => {
     load();
-  }, [searchParams]);
-
-  const change = (event) => {
-    setFilters((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
-  };
+  }, [searchParams, loadJobs]);
 
   const search = (event) => {
     event.preventDefault();

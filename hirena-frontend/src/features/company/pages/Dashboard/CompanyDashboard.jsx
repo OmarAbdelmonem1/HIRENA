@@ -4,21 +4,14 @@ import {
   getCompanyApplications,
   getCompanyJobs,
 } from "../../services/companyService";
+import { formatShortDate, formatStatus } from "../../../../utils/formatters";
 
-const text = (value) => value?.replaceAll("_", " ") || "—";
 const tone = (status) =>
   status === "APPROVED" || status === "ACCEPTED"
     ? "green"
     : status === "REJECTED"
       ? "red"
       : "orange";
-const date = (value) =>
-  value
-    ? new Date(value).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-      })
-    : "—";
 
 export default function CompanyDashboard() {
   const navigate = useNavigate();
@@ -101,10 +94,10 @@ export default function CompanyDashboard() {
                     </td>
                     <td>
                       <span className={`status-badge ${tone(job.status)}`}>
-                        {text(job.status)}
+                        {formatStatus(job.status)}
                       </span>
                     </td>
-                    <td>{date(job.createdAt)}</td>
+                    <td>{formatShortDate(job.createdAt)}</td>
                     <td>
                       <button
                         onClick={() => navigate(`/company/jobs/${job.id}`)}
@@ -147,7 +140,7 @@ export default function CompanyDashboard() {
                     <td>{app.jobTitle}</td>
                     <td>
                       <span className={`status-badge ${tone(app.status)}`}>
-                        {text(app.status)}
+                        {formatStatus(app.status)}
                       </span>
                     </td>
                   </tr>

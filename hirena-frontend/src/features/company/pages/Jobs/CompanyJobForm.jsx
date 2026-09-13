@@ -6,6 +6,8 @@ import {
   updateCompanyJob,
 } from "../../services/companyService";
 import { JOB_CATEGORIES } from "../../../../constants/jobSeekerProfile";
+import useForm from "../../../../hooks/useForm";
+import getErrorMessage from "../../../../utils/getErrorMessage";
 
 const initial = {
   title: "",
@@ -22,7 +24,7 @@ const initial = {
 export default function CompanyJobForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState(initial);
+  const { values: form, setValues: setForm, handleChange: change } = useForm(initial);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   useEffect(() => {
@@ -38,11 +40,9 @@ export default function CompanyJobForm() {
           }),
         )
         .catch((e) =>
-          setError(e.response?.data?.message || "Could not load job."),
+          setError(getErrorMessage(e, "Could not load job.")),
         );
   }, [id]);
-  const change = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -60,7 +60,7 @@ export default function CompanyJobForm() {
         : await createCompanyJob(data);
       navigate(`/company/jobs/${job.id}`);
     } catch (err) {
-      setError(err.response?.data?.message || "Could not save job.");
+      setError(getErrorMessage(err, "Could not save job."));
     } finally {
       setSaving(false);
     }

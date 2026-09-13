@@ -7,6 +7,8 @@ import {
 } from "../../services/companyService";
 import { COUNTRIES } from "../../../../constants/jobSeekerProfile";
 import { COMPANY_INDUSTRIES } from "../../../../constants/company";
+import useForm from "../../../../hooks/useForm";
+import getErrorMessage from "../../../../utils/getErrorMessage";
 
 const initial = {
   companyName: "",
@@ -23,7 +25,7 @@ const initial = {
 };
 
 function CompanyProfile() {
-  const [form, setForm] = useState(initial);
+  const { values: form, setValues: setForm, handleChange: change } = useForm(initial);
   const [exists, setExists] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,17 +42,12 @@ function CompanyProfile() {
       .catch((e) => {
         if (e.response?.status !== 404)
           setError(
-            e.response?.data?.message || "Could not load company profile.",
+            getErrorMessage(e, "Could not load company profile."),
           );
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const change = (event) =>
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
 
   const submit = async (event) => {
     event.preventDefault();
@@ -69,7 +66,7 @@ function CompanyProfile() {
       setExists(true);
       setMessage("Company profile saved successfully.");
     } catch (e) {
-      setError(e.response?.data?.message || "Could not save company profile.");
+      setError(getErrorMessage(e, "Could not save company profile."));
     } finally {
       setSaving(false);
     }

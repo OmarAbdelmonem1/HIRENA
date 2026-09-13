@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAdminUsers } from "../../services/jobSeekersService";
+import Pagination from "../../../../components/ui/Pagination";
+import Avatar from "../../../../components/ui/Avatar";
+import useNotice from "../../../../hooks/useNotice";
 
 const PAGE_SIZE = 10;
-
-function initials(firstName, lastName) {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
-  return (first + last).toUpperCase() || "?";
-}
 
 export default function Users() {
   const navigate = useNavigate();
@@ -22,7 +19,7 @@ export default function Users() {
   const [cityFilter, setCityFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice } = useNotice();
 
   useEffect(() => {
     let cancelled = false;
@@ -105,17 +102,6 @@ export default function Users() {
     return { total, active, blocked, newThisWeek };
   }, [users]);
 
-  const pageNumbers = useMemo(() => {
-    const maxVisible = 5;
-    let start = Math.max(1, page - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    start = Math.max(1, end - maxVisible + 1);
-
-    const pages = [];
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  }, [page, totalPages]);
-
   return (
     <div className="admin-page">
       <header className="admin-header">
@@ -133,10 +119,9 @@ export default function Users() {
         <button
           className="primary-button"
           onClick={() => {
-            setNotice(
+            showNotice(
               "Add user is not available yet — no backend endpoint exists for this action.",
             );
-            window.setTimeout(() => setNotice(""), 4000);
           }}
         >
           <span>＋</span>Add user
@@ -234,9 +219,11 @@ export default function Users() {
                     <tr key={user.id}>
                       <td>
                         <div className="user-cell">
-                          <div className="app-avatar blue">
-                            {initials(user.firstName, user.lastName)}
-                          </div>
+                          <Avatar
+                            firstName={user.firstName}
+                            lastName={user.lastName}
+                            className="app-avatar blue"
+                          />
                           <div>
                             <strong>
                               {user.firstName} {user.lastName}
@@ -290,31 +277,11 @@ export default function Users() {
               </table>
             </div>
 
-            <div className="pagination">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              {pageNumbers.map((n) => (
-                <button
-                  key={n}
-                  className={n === page ? "active" : ""}
-                  onClick={() => setPage(n)}
-                >
-                  {n}
-                </button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="Next page"
-              >
-                ›
-              </button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
       </section>

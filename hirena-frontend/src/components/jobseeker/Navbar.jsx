@@ -1,72 +1,14 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../../providers/AuthProvider";
 import logoFull from "../../assets/hirena-logo-full.svg";
-import {
-  getNotifications,
-  getUnreadNotificationCount,
-} from "../../features/jobseeker/services/jobseekerService";
-import useNotificationSocket from "../../features/shared/useNotificationSocket";
+import { useNotifications } from "../../providers/NotificationProvider";
 
 export default function Navbar() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [unread, setUnread] = useState(0);
-  const [notificationToast, setNotificationToast] = useState(null);
-  const latestNotificationId = useRef(null);
-  useNotificationSocket((notification) => {
-    latestNotificationId.current = notification.id;
-    getUnreadNotificationCount()
-      .then((data) => setUnread(data.count || 0))
-      .catch(() => setUnread((count) => count + 1));
-    setNotificationToast(notification);
-  }, token);
-
-  useEffect(() => {
-    if (!notificationToast) return undefined;
-    const timeout = window.setTimeout(() => setNotificationToast(null), 6000);
-    return () => window.clearTimeout(timeout);
-  }, [notificationToast]);
-  useEffect(() => {
-    if (user?.role === "JOB_SEEKER" && token)
-      getUnreadNotificationCount()
-        .then((data) => setUnread(data.count || 0))
-        .catch(() => setUnread(0));
-  }, [user, token]);
-
-  useEffect(() => {
-    if (user?.role !== "JOB_SEEKER" || !token) return undefined;
-
-    let initialized = false;
-    const checkNotifications = () => {
-      Promise.all([getNotifications(), getUnreadNotificationCount()])
-        .then(([items, unreadData]) => {
-          setUnread(unreadData.count || 0);
-          const newest = items[0];
-          if (!newest) return;
-          if (!initialized) {
-            latestNotificationId.current = newest.id;
-            initialized = true;
-            return;
-          }
-          if (newest.id !== latestNotificationId.current) {
-            latestNotificationId.current = newest.id;
-            setNotificationToast(newest);
-            window.dispatchEvent(
-              new CustomEvent("hirena:notification", { detail: newest }),
-            );
-          }
-        })
-        .catch((error) =>
-          console.error("Could not check notifications:", error),
-        );
-    };
-
-    checkNotifications();
-    const interval = window.setInterval(checkNotifications, 5000);
-    return () => window.clearInterval(interval);
-  }, [token, user]);
+  const { unreadCount: unread, toast, setToast } = useNotifications();
   const link = ({ isActive }) => `main-nav-link ${isActive ? "active" : ""}`;
   const signOut = () => {
     logout();
@@ -74,17 +16,17 @@ export default function Navbar() {
   };
   return (
     <>
-      {notificationToast && (
+      {toast && (
         <button
           type="button"
           className="notification-toast"
           onClick={() => {
-            setNotificationToast(null);
+            setToast(null);
             navigate("/notifications");
           }}
         >
-          <strong>{notificationToast.title}</strong>
-          <span>{notificationToast.message}</span>
+          <strong>{toast.title}</strong>
+          <span>{toast.message}</span>
         </button>
       )}
       <header className="main-navbar">

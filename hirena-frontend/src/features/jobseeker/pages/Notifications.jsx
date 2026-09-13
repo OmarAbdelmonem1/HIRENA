@@ -1,25 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  deleteAllNotifications,
-  deleteNotification,
-  getNotifications,
-  markNotificationRead,
-} from "../services/jobseekerService";
-
-const time = (value) =>
-  value
-    ? new Date(value).toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
-    : "";
-
-const icon = (type) =>
-  type === "APPLICATION_STATUS_CHANGED"
-    ? "✓"
-    : type === "APPLICATION_VIEWED"
-      ? "◉"
-      : "✦";
+import { useMemo, useState } from "react";
+import { useNotifications } from "../../../providers/NotificationProvider";
+import { formatDateTime, notificationIcon } from "../../../utils/formatters";
 
 const labels = {
   ALL: "All notifications",
@@ -30,27 +11,15 @@ const labels = {
 };
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState("ALL");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const receiveNotification = (event) => {
-      const notification = event.detail;
-      setNotifications((items) => [
-        notification,
-        ...items.filter((item) => item.id !== notification.id),
-      ]);
-    };
-    window.addEventListener("hirena:notification", receiveNotification);
-    getNotifications()
-      .then(setNotifications)
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load notifications."),
-      );
-    return () =>
-      window.removeEventListener("hirena:notification", receiveNotification);
-  }, []);
+  const {
+    notifications,
+    error,
+    setError,
+    markAsRead,
+    remove,
+    clearAll,
+  } = useNotifications();
 
   const visibleNotifications = useMemo(
     () =>
@@ -62,37 +31,12 @@ export default function Notifications() {
     [filter, notifications],
   );
 
-  const open = async (notification) => {
-    if (notification.read) return;
-    try {
-      await markNotificationRead(notification.id);
-      setNotifications((items) =>
-        items.map((item) =>
-          item.id === notification.id ? { ...item, read: true } : item,
-        ),
-      );
-    } catch (e) {
-      setError(e.response?.data?.message || "Could not update notification.");
-    }
-  };
-
-  const remove = async (notification) => {
-    try {
-      await deleteNotification(notification.id);
-      setNotifications((items) =>
-        items.filter((item) => item.id !== notification.id),
-      );
-    } catch (e) {
-      setError(e.response?.data?.message || "Could not delete notification.");
-    }
-  };
-
-  const clearAll = async () => {
-    if (!notifications.length || !window.confirm("Delete all notifications?"))
+  const handleClearAll = async () => {
+    if (!notifications.length || !window.confirm("Delete all notifications?")) {
       return;
+    }
     try {
-      await deleteAllNotifications();
-      setNotifications([]);
+      await clearAll();
     } catch (e) {
       setError(e.response?.data?.message || "Could not delete notifications.");
     }
@@ -110,7 +54,7 @@ export default function Notifications() {
           <button
             type="button"
             className="secondary-button"
-            onClick={clearAll}
+            onClick={handleClearAll}
             disabled={!notifications.length}
           >
             Clear all
@@ -145,16 +89,16 @@ export default function Notifications() {
             <button
               type="button"
               className="notification-content"
-              onClick={() => open(notification)}
+              onClick={() => markAsRead(notification)}
             >
               <span className="notification-icon">
-                {icon(notification.type)}
+                {notificationIcon(notification.type)}
               </span>
               <span>
                 <strong>{notification.title}</strong>
                 <p>{notification.message}</p>
                 <small>
-                  {time(notification.createdAt)}
+                  {formatDateTime(notification.createdAt)}
                   {!notification.read && " · New"}
                 </small>
               </span>

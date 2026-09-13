@@ -1,22 +1,6 @@
 import { useEffect, useState } from "react";
 import { getNotifications, markNotificationRead } from "./notificationService";
-
-const formatDate = (value) =>
-  value
-    ? new Date(value).toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
-    : "";
-
-const icon = (type) =>
-  type === "JOB_APPROVED"
-    ? "✓"
-    : type === "JOB_REJECTED"
-      ? "!"
-      : type === "APPLICATION_RECEIVED"
-        ? "✦"
-        : "•";
+import { formatDateTime, notificationIcon } from "../../utils/formatters";
 
 export default function NotificationsList({ audience }) {
   const [items, setItems] = useState([]);
@@ -74,12 +58,14 @@ export default function NotificationsList({ audience }) {
             key={item.id}
             onClick={() => markRead(item)}
           >
-            <span className="notification-icon">{icon(item.type)}</span>
+            <span className="notification-icon">
+              {notificationIcon(item.type)}
+            </span>
             <div>
               <strong>{item.title}</strong>
               <p>{item.message}</p>
               <small>
-                {formatDate(item.createdAt)}
+                {formatDateTime(item.createdAt)}
                 {!item.read && " · New"}
               </small>
             </div>

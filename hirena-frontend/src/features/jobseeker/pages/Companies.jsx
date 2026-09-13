@@ -1,31 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getCompanies } from "../services/jobseekerService";
+import useAsyncRequest from "../../../hooks/useAsyncRequest";
+import useForm from "../../../hooks/useForm";
 
 export default function Companies() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [companies, setCompanies] = useState([]);
-  const [page, setPage] = useState(null);
-  const [error, setError] = useState("");
-  const [filters, setFilters] = useState({
+  const {
+    data: page,
+    error,
+    execute: loadCompanies,
+  } = useAsyncRequest(getCompanies, { initialData: { content: [] } });
+  const companies = page?.content || [];
+  const { values: filters, handleChange: change } = useForm({
     keyword: searchParams.get("keyword") || "",
     industry: searchParams.get("industry") || "",
   });
   useEffect(() => {
-    getCompanies({
+    loadCompanies({
       ...filters,
       page: Number(searchParams.get("page") || 0),
       size: 12,
-    })
-      .then((data) => {
-        setCompanies(data.content || []);
-        setPage(data);
-      })
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load companies."),
-      );
-  }, [searchParams]);
+    }).catch(() => {});
+  }, [searchParams, loadCompanies]);
   const submit = (event) => {
     event.preventDefault();
     const next = new URLSearchParams();
@@ -34,11 +32,6 @@ export default function Companies() {
     );
     setSearchParams(next);
   };
-  const change = (event) =>
-    setFilters((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
   return (
     <div className="profile-page">
       <section className="page-intro">

@@ -1,21 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAdminUserById } from "../../services/jobSeekersService";
-
-function initials(firstName, lastName) {
-  const first = firstName?.[0] || "";
-  const last = lastName?.[0] || "";
-  return (first + last).toUpperCase() || "?";
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatDate, getInitials } from "../../../../utils/formatters";
 
 export default function UserDetails() {
   const { id } = useParams();
@@ -73,7 +59,7 @@ export default function UserDetails() {
         <>
           <section className="panel profile-header">
             <div className="app-avatar blue profile-avatar">
-              {initials(user.firstName, user.lastName)}
+              {getInitials(user.firstName, user.lastName)}
             </div>
             <div className="profile-heading">
               <h2>

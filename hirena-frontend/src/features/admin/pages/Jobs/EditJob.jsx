@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAdminJob, updateAdminJob } from "../../services/jobsService";
+import useForm from "../../../../hooks/useForm";
+import getErrorMessage from "../../../../utils/getErrorMessage";
 
 const empty = {
   title: "",
@@ -24,7 +26,7 @@ const types = [
 export default function EditJob() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState(empty);
+  const { values: form, setValues: setForm, handleChange: change } = useForm(empty);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -41,12 +43,10 @@ export default function EditJob() {
         }),
       )
       .catch((err) =>
-        setError(err.response?.data?.message || "Failed to load job."),
+        setError(getErrorMessage(err, "Failed to load job.")),
       )
       .finally(() => setLoading(false));
   }, [id]);
-  const change = (e) =>
-    setForm((old) => ({ ...old, [e.target.name]: e.target.value }));
   const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -65,7 +65,7 @@ export default function EditJob() {
       await updateAdminJob(id, payload);
       navigate(`/admin/jobs/${id}`);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update job.");
+      setError(getErrorMessage(err, "Failed to update job."));
     } finally {
       setSaving(false);
     }

@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../providers/AuthProvider";
 import { getRouteByRole } from "../../constants/routes";
+import useForm from "../../hooks/useForm";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { values: form, handleChange } = useForm({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const auth = useAuth();
@@ -60,7 +64,8 @@ export default function Login() {
             <input
               type="email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              name="email"
+              onChange={handleChange}
               placeholder="you@example.com"
               required
             />
@@ -70,7 +75,8 @@ export default function Login() {
             <input
               type="password"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              name="password"
+              onChange={handleChange}
               placeholder="Enter your password"
               required
             />

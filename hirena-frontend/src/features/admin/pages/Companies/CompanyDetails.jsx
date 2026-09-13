@@ -6,22 +6,9 @@ import {
   deleteAdminCompany,
 } from "../../services/companiesService";
 import CompanyModal from "./CompanyModal";
-
-function initials(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatDate, getInitials } from "../../../../utils/formatters";
+import useNotice from "../../../../hooks/useNotice";
+import getErrorMessage from "../../../../utils/getErrorMessage";
 
 export default function CompanyDetails() {
   const { id } = useParams();
@@ -30,7 +17,7 @@ export default function CompanyDetails() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const { notice, showNotice } = useNotice();
 
   // Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,11 +34,7 @@ export default function CompanyDetails() {
       const data = await getCompanyById(id);
       setCompany(data);
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to load company details",
-      );
+      setError(getErrorMessage(err, "Failed to load company details"));
     } finally {
       setLoading(false);
     }
@@ -61,24 +44,15 @@ export default function CompanyDetails() {
     loadCompany();
   }, [id]);
 
-  const showToast = (msg) => {
-    setNotice(msg);
-    window.setTimeout(() => setNotice(""), 4000);
-  };
-
   const handleEditSubmit = async (payload) => {
     setIsSubmitting(true);
     try {
       const updated = await updateAdminCompany(id, payload);
       setCompany(updated);
       setIsModalOpen(false);
-      showToast("Company profile updated successfully.");
+      showNotice("Company profile updated successfully.");
     } catch (err) {
-      showToast(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to update company",
-      );
+      showNotice(getErrorMessage(err, "Failed to update company"));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,11 +64,7 @@ export default function CompanyDetails() {
       await deleteAdminCompany(id);
       navigate("/admin/companies");
     } catch (err) {
-      showToast(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to delete company",
-      );
+      showNotice(getErrorMessage(err, "Failed to delete company"));
       setIsDeleting(false);
       setIsConfirmDeleteOpen(false);
     }
@@ -151,7 +121,7 @@ export default function CompanyDetails() {
               className="app-avatar purple profile-avatar"
               style={{ display: company.logo ? "none" : "grid" }}
             >
-              {initials(company.companyName)}
+              {getInitials(company.companyName)}
             </div>
             <div className="profile-heading">
               <h2>{company.companyName}</h2>
