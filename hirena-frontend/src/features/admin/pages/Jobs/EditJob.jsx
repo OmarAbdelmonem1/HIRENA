@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAdminJob, updateAdminJob } from "../../Services/JobsService";
+import { getAdminJob, updateAdminJob } from "../../services/jobsService";
 
 const empty = {
   title: "",

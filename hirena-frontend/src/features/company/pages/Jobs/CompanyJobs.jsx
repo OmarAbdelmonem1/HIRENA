@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   deleteCompanyJob,
   getCompanyJobs,
-} from "../../Services/companyService";
+} from "../../services/companyService";
 
 const text = (v) => v?.replaceAll("_", " ") || "—";
 const tone = (v) =>

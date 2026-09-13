@@ -1,153 +1,86 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCompanyApplication,
   getCompanyApplicationCv,
   updateCompanyApplicationStatus,
-} from "../../Services/companyService";
-const tone = (v) =>
-  v === "ACCEPTED"
-    ? "green"
-    : v === "REJECTED"
-      ? "red"
-      : v === "REVIEWING"
-        ? "blue"
-        : "orange";
+} from "../../services/companyService";
+import ApplicationHeader from "../../../../components/applications/ApplicationHeader";
+import CandidateProfileCard from "../../../../components/applications/CandidateProfileCard";
+import CoverLetterCard from "../../../../components/applications/CoverLetterCard";
+import CvAnalysisCard from "../../../../components/applications/CvAnalysisCard";
+import CvCard from "../../../../components/applications/CvCard";
+import useApplicationPolling from "../../../../hooks/useApplicationPolling";
+import LoadingState from "../../../../components/ui/LoadingState";
+import ErrorMessage from "../../../../components/ui/ErrorMessage";
+
 export default function CompanyApplicationDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [app, setApp] = useState(null);
+  const [application, setApplication] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+      try {
+        const data = await getCompanyApplication(id);
+        setApplication(data);
+      } catch (e) {
+        setError(e.response?.data?.message || "Could not load application.");
+      }
+    }, [id]);
+
   useEffect(() => {
-    getCompanyApplication(id)
-      .then(setApp)
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load application."),
-      );
-  }, [id]);
+    load();
+  }, [load]);
+
+  useApplicationPolling(
+    load,
+    application?.cvAnalysis?.status === "ANALYZING",
+  );
+
   const update = async (status) => {
     setSaving(true);
     setError("");
     try {
-      setApp(await updateCompanyApplicationStatus(id, status));
+      setApplication(await updateCompanyApplicationStatus(id, status));
     } catch (e) {
       setError(e.response?.data?.message || "Could not update application.");
     } finally {
       setSaving(false);
     }
   };
-  const openCv = async () => {
-    try {
-      const response = await getCompanyApplicationCv(id);
-      const url = URL.createObjectURL(response.data);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (e) {
-      setError(e.response?.data?.message || "Could not open candidate CV.");
-    }
-  };
-  if (error && !app) return <p className="table-message error">{error}</p>;
-  if (!app) return <p className="table-message">Loading application…</p>;
+
+  if (error && !application) return <ErrorMessage message={error} />;
+  if (!application) return <LoadingState message="Loading application…" />;
+
   return (
     <div className="company-application-page">
-      <header className="application-page-header">
-        <button
-          className="back-link"
-          onClick={() => navigate(`/company/applications?jobId=${app.jobId}`)}
-        >
-          ← Back to applications
-        </button>
-        <div className="application-header-row">
-          <div className="candidate-avatar">
-            {app.jobSeekerFirstName?.charAt(0)}
-            {app.jobSeekerLastName?.charAt(0)}
-          </div>
-          <div>
-            <p className="eyebrow">Candidate review</p>
-            <h1>
-              {app.jobSeekerFirstName} {app.jobSeekerLastName}
-            </h1>
-            <p className="application-subtitle">
-              Application for <strong>{app.jobTitle}</strong>
-            </p>
-          </div>
-          <span className={`status-badge ${tone(app.status)}`}>
-            {app.status}
-          </span>
-        </div>
-      </header>
+      <ApplicationHeader
+        application={application}
+        eyebrow="Candidate review"
+        backLabel="Back to applications"
+        onBack={() => navigate(`/company/applications?jobId=${application.jobId}`)}
+      />
       <div className="application-details-grid">
         <main>
-          <section className="application-card">
-            <div className="card-heading">
-              <div>
-                <p className="eyebrow">Candidate profile</p>
-                <h2>Professional snapshot</h2>
-              </div>
-            </div>
-            <div className="candidate-facts">
-              <div>
-                <span>Email</span>
-                <strong>{app.jobSeekerEmail || "Not available"}</strong>
-              </div>
-              <div>
-                <span>Phone</span>
-                <strong>{app.jobSeekerPhone || "Not available"}</strong>
-              </div>
-              <div>
-                <span>Location</span>
-                <strong>
-                  {[app.jobSeekerCity, app.jobSeekerCountry]
-                    .filter(Boolean)
-                    .join(", ") || "Not specified"}
-                </strong>
-              </div>
-              <div>
-                <span>Target role</span>
-                <strong>
-                  {app.jobSeekerTargetJobTitle || "Not specified"}
-                </strong>
-              </div>
-              <div>
-                <span>Experience</span>
-                <strong>{app.jobSeekerYearsOfExperience ?? 0} years</strong>
-              </div>
-            </div>
-            <h3>Professional summary</h3>
-            <p className="detail-copy">
-              {app.jobSeekerBio || "No professional summary provided."}
-            </p>
-          </section>
-          <section className="application-card">
-            <p className="eyebrow">Applicant message</p>
-            <h2>Cover letter</h2>
-            <p className="detail-copy">
-              {app.coverLetter || "No cover letter provided."}
-            </p>
-          </section>
+          <CandidateProfileCard application={application} />
+          <CvAnalysisCard application={application} />
+          <CoverLetterCard application={application} />
         </main>
         <aside>
-          <section className="application-side-card cv-card">
-            <div className="cv-icon">CV</div>
-            <p className="eyebrow">Resume</p>
-            <h3>{app.jobSeekerCvFileName || "No CV uploaded"}</h3>
-            <p>
-              {app.jobSeekerCvFileName
-                ? "Review the candidate resume before making your decision."
-                : "This candidate has not uploaded a CV yet."}
-            </p>
-            {app.jobSeekerCvFileName && (
-              <button className="primary-button full-button" onClick={openCv}>
-                View CV
-              </button>
-            )}
-          </section>
+          <CvCard
+            application={application}
+            loadCv={() => getCompanyApplicationCv(id)}
+            onError={setError}
+            description="Review the candidate resume before making your decision."
+          />
           <section className="application-side-card">
             <p className="eyebrow">Decision</p>
             <h3>Update application</h3>
-            {error && <p className="table-message error">{error}</p>}
-            {app.status !== "ACCEPTED" && app.status !== "REJECTED" ? (
+            <ErrorMessage message={error} />
+            {application.status !== "ACCEPTED" &&
+            application.status !== "REJECTED" ? (
               <div className="decision-actions">
                 <button
                   disabled={saving}
@@ -166,7 +99,7 @@ export default function CompanyApplicationDetails() {
               </div>
             ) : (
               <p className="decision-complete">
-                This application is {app.status.toLowerCase()}.
+                This application is {application.status.toLowerCase()}.
               </p>
             )}
           </section>

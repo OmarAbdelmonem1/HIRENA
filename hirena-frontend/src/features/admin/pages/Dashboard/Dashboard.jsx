@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../../providers/AuthProvider";
-import { getAdminDashboard } from "../../Services/AdminDashbaordService";
+import { getAdminDashboard } from "../../services/adminDashboardService";
 
 function MetricIcon({ type }) {
   const paths = {

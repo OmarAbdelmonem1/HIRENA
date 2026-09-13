@@ -24,6 +24,8 @@ export const deleteAllNotifications = () =>
   api.delete("/api/jobseeker/notifications");
 export const getProfile = () =>
   api.get("/api/jobseeker/profile").then((r) => r.data);
+export const getMyCvFile = () =>
+  api.get("/api/jobseeker/cv/file", { responseType: "blob" });
 export const createProfile = (data) =>
   api.post("/api/jobseeker/profile", data).then((r) => r.data);
 export const updateProfile = (data) =>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { applyToJob, getJob } from "../Services/jobseekerService";
+import { applyToJob, getJob } from "../services/jobseekerService";
 export default function Apply() {
   const { id } = useParams();
   const navigate = useNavigate();

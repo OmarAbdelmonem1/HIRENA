@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getJob } from "../Services/jobseekerService";
+import { getApplications, getJob } from "../services/jobseekerService";
 const saved = (id) =>
   JSON.parse(localStorage.getItem("saved_jobs") || "[]").some(
     (job) => String(job.id) === String(id),
@@ -10,13 +10,35 @@ export default function JobDetails() {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [isSaved, setIsSaved] = useState(saved(id));
+  const [hasApplied, setHasApplied] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    getJob(id)
-      .then(setJob)
-      .catch((e) =>
-        setError(e.response?.data?.message || "Could not load this job."),
-      );
+    let cancelled = false;
+    Promise.allSettled([getJob(id), getApplications()])
+      .then(([jobResult, applicationsResult]) => {
+        if (cancelled) return;
+        if (jobResult.status === "rejected") {
+          throw jobResult.reason;
+        }
+        setJob(jobResult.value);
+        if (applicationsResult.status === "fulfilled") {
+          setHasApplied(
+            (applicationsResult.value || []).some(
+              (application) => String(application.jobId) === String(id),
+            ),
+          );
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(
+            e.response?.data?.message || "Could not load this job.",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
   const toggleSave = () => {
     const jobs = JSON.parse(localStorage.getItem("saved_jobs") || "[]");
@@ -67,8 +89,9 @@ export default function JobDetails() {
           <button
             className="primary-button full-button"
             onClick={() => navigate(`/jobs/${id}/apply`)}
+            disabled={hasApplied}
           >
-            Apply now →
+            {hasApplied ? "Applied" : "Apply now →"}
           </button>
           <div className="job-summary">
             <span>Unique views</span>

@@ -4,7 +4,7 @@ import {
   deleteNotification,
   getNotifications,
   markNotificationRead,
-} from "../Services/jobseekerService";
+} from "../services/jobseekerService";
 
 const time = (value) =>
   value

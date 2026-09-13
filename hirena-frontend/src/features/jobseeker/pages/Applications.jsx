@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApplications } from "../Services/jobseekerService";
+import { getApplications } from "../services/jobseekerService";
 export default function Applications() {
   const navigate = useNavigate();
   const [apps, setApps] = useState([]);

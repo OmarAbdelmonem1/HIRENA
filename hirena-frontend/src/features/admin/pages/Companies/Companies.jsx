@@ -6,7 +6,7 @@ import {
   createAdminCompany,
   updateAdminCompany,
   deleteAdminCompany,
-} from "../../Services/CompaniesService";
+} from "../../services/companiesService";
 import CompanyModal from "./CompanyModal";
 
 const PAGE_SIZE = 10;

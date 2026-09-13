@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { getCompanies } from "../Services/jobseekerService";
+import { getCompanies } from "../services/jobseekerService";
 
 export default function Companies() {
   const [searchParams, setSearchParams] = useSearchParams();

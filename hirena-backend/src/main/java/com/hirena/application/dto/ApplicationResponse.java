@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ApplicationResponse {
-
     private Long id;
 
     // Job summary
@@ -36,9 +35,14 @@ public class ApplicationResponse {
     private ApplicationStatus status;
     private LocalDateTime appliedAt;
     private LocalDateTime updatedAt;
+    private CvAnalysisResponse cvAnalysis;
 
     public static ApplicationResponse fromEntity(Application application) {
-        return ApplicationResponse.builder()
+        return fromEntity(application, true);
+    }
+
+    public static ApplicationResponse fromEntity(Application application, boolean includeCvAnalysis) {
+        ApplicationResponseBuilder builder = ApplicationResponse.builder()
                 .id(application.getId())
                 .jobId(application.getJob().getId())
                 .jobTitle(application.getJob().getTitle())
@@ -61,7 +65,12 @@ public class ApplicationResponse {
                 .coverLetter(application.getCoverLetter())
                 .status(application.getStatus())
                 .appliedAt(application.getAppliedAt())
-                .updatedAt(application.getUpdatedAt())
-                .build();
+                .updatedAt(application.getUpdatedAt());
+        if (includeCvAnalysis) {
+            builder.cvAnalysis(application.getCvAnalysis() == null
+                    ? null
+                    : CvAnalysisResponse.fromEntity(application.getCvAnalysis()));
+        }
+        return builder.build();
     }
 }

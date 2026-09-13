@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   getCompanyJob,
   getCompanyJobAnalytics,
-} from "../../Services/companyService";
+} from "../../services/companyService";
 const text = (v) => v?.replaceAll("_", " ") || "—";
 export default function CompanyJobDetails() {
   const { id } = useParams();

@@ -4,7 +4,7 @@ import {
   getCompanyProfile,
   updateCompanyProfile,
   uploadCompanyLogo,
-} from "../../Services/companyService";
+} from "../../services/companyService";
 import { COUNTRIES } from "../../../../constants/jobSeekerProfile";
 import { COMPANY_INDUSTRIES } from "../../../../constants/company";
 

@@ -7,8 +7,8 @@ import {
   deleteAdminJob,
   getAdminJobs,
   rejectAdminJob,
-} from "../../Services/JobsService";
-import { getAdminCompanies } from "../../Services/CompaniesService";
+} from "../../services/jobsService";
+import { getAdminCompanies } from "../../services/companiesService";
 
 const statusValues = ["PENDING", "APPROVED", "REJECTED", "CLOSED"];
 const types = [

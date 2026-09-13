@@ -29,6 +29,13 @@ public class CVService {
         return CVResponse.fromEntity(cv);
     }
 
+    @Transactional(readOnly = true)
+    public CV getMyCvFile() {
+        JobSeeker jobSeeker = jobSeekerService.getJobSeekerForCurrentUser();
+        return cvRepository.findByJobSeekerId(jobSeeker.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No CV uploaded yet"));
+    }
+
     public CVResponse uploadCv(MultipartFile file) {
         JobSeeker jobSeeker = jobSeekerService.getJobSeekerForCurrentUser();
 

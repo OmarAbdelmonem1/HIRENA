@@ -5,7 +5,7 @@ import {
   deleteAdminJob,
   getAdminJob,
   rejectAdminJob,
-} from "../../Services/JobsService";
+} from "../../services/jobsService";
 
 const label = (value) => value?.replaceAll("_", " ") || "—";
 const date = (value) =>

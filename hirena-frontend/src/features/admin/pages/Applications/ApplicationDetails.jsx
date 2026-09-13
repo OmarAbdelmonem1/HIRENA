@@ -1,130 +1,85 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getApplicationById } from "../../Services/ApplicationsService";
-
-function statusTone(status) {
-  switch (status) {
-    case "ACCEPTED":
-      return "green";
-    case "REJECTED":
-      return "red";
-    case "REVIEWING":
-      return "blue";
-    case "PENDING":
-    default:
-      return "yellow";
-  }
-}
+import {
+  getAdminApplicationCv,
+  getApplicationById,
+} from "../../services/applicationsService.js";
+import ApplicationHeader from "../../../../components/applications/ApplicationHeader";
+import CandidateProfileCard from "../../../../components/applications/CandidateProfileCard";
+import CoverLetterCard from "../../../../components/applications/CoverLetterCard";
+import CvAnalysisCard from "../../../../components/applications/CvAnalysisCard";
+import CvCard from "../../../../components/applications/CvCard";
+import useApplicationPolling from "../../../../hooks/useApplicationPolling";
+import LoadingState from "../../../../components/ui/LoadingState";
+import ErrorMessage from "../../../../components/ui/ErrorMessage";
+import EmptyState from "../../../../components/ui/EmptyState";
 
 export default function ApplicationDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError("");
+  const load = useCallback(async (showLoading = true) => {
+      if (showLoading) setLoading(true);
       try {
         const data = await getApplicationById(id);
-        if (!cancelled) setApplication(data);
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err.response?.data?.message ||
-              err.message ||
-              "Failed to load application",
-          );
-        }
+        setApplication(data);
+      } catch (e) {
+        setError(e.response?.data?.message || e.message || "Failed to load application");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (showLoading) setLoading(false);
       }
-    }
+    }, [id]);
 
+  useEffect(() => {
     load();
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  }, [load]);
 
-  if (loading) return <p className="table-message">Loading application…</p>;
-  if (error) return <p className="table-message error">{error}</p>;
-  if (!application)
-    return <p className="table-message">Application not found.</p>;
+  useApplicationPolling(
+    () => load(false),
+    application?.cvAnalysis?.status === "ANALYZING",
+  );
+
+  if (loading) return <LoadingState message="Loading application…" />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!application) return <EmptyState message="Application not found." />;
 
   return (
-    <div className="admin-page">
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Applications</p>
-          <h1>Application #{application.id}</h1>
-        </div>
-        <button
-          className="primary-button"
-          onClick={() => navigate("/admin/applications")}
-        >
-          ← Back to applications
-        </button>
-      </header>
-
-      <section className="panel">
-        <div
-          className="filters-row"
-          style={{ justifyContent: "space-between" }}
-        >
-          <span className={`status-badge ${statusTone(application.status)}`}>
-            {application.status}
-          </span>
-        </div>
-
-        <div className="metric-grid" style={{ marginTop: "16px" }}>
-          <article className="metric-card">
-            <div className="metric-copy plain">
-              <span>Candidate</span>
-              <strong>
-                {application.jobSeekerFirstName} {application.jobSeekerLastName}
-              </strong>
-            </div>
-          </article>
-          <article className="metric-card">
-            <div className="metric-copy plain">
-              <span>Email</span>
-              <strong>{application.jobSeekerEmail}</strong>
-            </div>
-          </article>
-          <article className="metric-card">
-            <div className="metric-copy plain">
-              <span>Job</span>
-              <strong>{application.jobTitle}</strong>
-            </div>
-          </article>
-          <article className="metric-card">
-            <div className="metric-copy plain">
-              <span>Company</span>
-              <strong>{application.companyName}</strong>
-            </div>
-          </article>
-        </div>
-
-        <div style={{ marginTop: "24px" }}>
-          <h3>Cover letter</h3>
-          <p>{application.coverLetter || "No cover letter provided."}</p>
-        </div>
-
-        <div style={{ marginTop: "16px" }}>
-          <h3>Applied at</h3>
-          <p>
-            {application.appliedAt
-              ? new Date(application.appliedAt).toLocaleString()
-              : "—"}
-          </p>
-        </div>
-      </section>
+    <div className="company-application-page">
+      <ApplicationHeader
+        application={application}
+        eyebrow="Admin application review"
+        backLabel="Back to applications"
+        onBack={() => navigate("/admin/applications")}
+      />
+      <div className="application-details-grid">
+        <main>
+          <CandidateProfileCard application={application} />
+          <CvAnalysisCard application={application} />
+          <CoverLetterCard application={application} />
+        </main>
+        <aside>
+          <CvCard
+            application={application}
+            loadCv={() => getAdminApplicationCv(id)}
+            onError={setError}
+            description="Candidate resume attached to this application."
+          />
+          <section className="application-side-card">
+            <p className="eyebrow">Application</p>
+            <h3>Submission details</h3>
+            <p>
+              Submitted{" "}
+              {application.appliedAt
+                ? new Date(application.appliedAt).toLocaleString()
+                : "—"}
+            </p>
+            <p>Company: {application.companyName || "Not available"}</p>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

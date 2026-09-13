@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getCompany } from "../Services/jobseekerService";
+import { getCompany } from "../services/jobseekerService";
 import { JobCard } from "./Home";
 
 export default function CompanyDetails() {

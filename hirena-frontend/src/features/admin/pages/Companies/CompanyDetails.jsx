@@ -4,7 +4,7 @@ import {
   getCompanyById,
   updateAdminCompany,
   deleteAdminCompany,
-} from "../../Services/CompaniesService";
+} from "../../services/companiesService";
 import CompanyModal from "./CompanyModal";
 
 function initials(name) {

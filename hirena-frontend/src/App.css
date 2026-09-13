@@ -1903,6 +1903,11 @@ td strong {
   width: 100%;
   justify-content: center;
 }
+.apply-card .full-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #8a96aa;
+}
 .job-summary {
   display: grid;
   gap: 6px;
@@ -2036,6 +2041,50 @@ td strong {
 }
 .application-detail h1 {
   font-size: 28px;
+}
+.cv-analysis-result {
+  margin: 28px 0;
+  padding: 22px;
+}
+.cv-analysis-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.cv-analysis-heading h2 {
+  margin-top: 8px;
+}
+.cv-score {
+  color: #315fe8;
+  font-size: 32px;
+}
+.cv-analysis-stats {
+  color: #52617a;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.cv-analysis-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.cv-analysis-result h3 {
+  color: #253250;
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+.cv-analysis-result ul {
+  color: #6f7c94;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+  padding-left: 18px;
+}
+@media (max-width: 620px) {
+  .cv-analysis-columns {
+    grid-template-columns: 1fr;
+  }
 }
 .application-timeline {
   display: flex;
@@ -3366,6 +3415,19 @@ td strong {
   border-radius: 10px;
   background: #ecfaf3;
   font-weight: 700;
+}
+.cv-viewer-card {
+  max-width: 1180px;
+  margin: 22px auto 0;
+}
+.cv-viewer {
+  display: block;
+  width: 100%;
+  height: min(900px, 85vh);
+  margin-top: 18px;
+  border: 1px solid #e8ecf3;
+  border-radius: 12px;
+  background: #f7f9fc;
 }
 @media (max-width: 800px) {
   .application-details-grid {

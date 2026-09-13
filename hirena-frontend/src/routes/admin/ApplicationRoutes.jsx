@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import Applications from "../../features/admin/pages/Applications/Applications";
-import ApplicationDetails from "../../features/admin/pages/Applications/ApplicationDetails";
+import Applications from "../../features/admin/pages/Applications/Applications.jsx";
+import ApplicationDetails from "../../features/admin/pages/Applications/ApplicationDetails.jsx";
 
 export default function ApplicationRoutes() {
   return (

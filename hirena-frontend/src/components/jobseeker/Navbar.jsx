@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../providers/AuthProvider";
 import logoFull from "../../assets/hirena-logo-full.svg";
-import { getUnreadNotificationCount } from "../../features/jobseeker/Services/jobseekerService";
+import { getUnreadNotificationCount } from "../../features/jobseeker/services/jobseekerService";
 
 export default function Navbar() {
   const { user, token, logout } = useAuth();

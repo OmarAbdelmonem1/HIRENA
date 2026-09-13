@@ -4,7 +4,7 @@ import {
   createCompanyJob,
   getCompanyJob,
   updateCompanyJob,
-} from "../../Services/companyService";
+} from "../../services/companyService";
 import { JOB_CATEGORIES } from "../../../../constants/jobSeekerProfile";
 
 const initial = {

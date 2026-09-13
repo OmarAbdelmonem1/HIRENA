@@ -5,10 +5,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.client.RestClient;
 
 @Configuration
 @EnableConfigurationProperties(GeminiProperties.class)
+@EnableAsync
 public class CvAnalysisConfig {
     @Bean
     public RestClient.Builder restClientBuilder() {

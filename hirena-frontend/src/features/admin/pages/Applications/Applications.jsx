@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAdminUsers } from "../../services/jobSeekersService";
-
+import { getAllApplications } from "../../services/applicationsService.js";
+import StatusBadge from "../../../../components/ui/StatusBadge";
+import LoadingState from "../../../../components/ui/LoadingState";
+import ErrorMessage from "../../../../components/ui/ErrorMessage";
+import EmptyState from "../../../../components/ui/EmptyState";
 const PAGE_SIZE = 10;
 
 function initials(firstName, lastName) {
@@ -10,38 +13,37 @@ function initials(firstName, lastName) {
   return (first + last).toUpperCase() || "?";
 }
 
-export default function Users() {
+export default function Applications() {
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadUsers() {
+    async function loadApplications() {
       setLoading(true);
       setError("");
 
       try {
-        // Backend has no server-side search/filter yet, so we pull a single
-        // large page and do search/filter/pagination on the client.
-        const data = await getAdminUsers({ page: 0, size: 1000 });
-        if (!cancelled) setUsers(data.content || []);
+        const data = await getAllApplications({
+          page: 0,
+          size: 1000,
+          sort: "appliedAt,desc",
+        });
+        if (!cancelled) setApplications(data.content || []);
       } catch (err) {
         if (!cancelled) {
           setError(
-            err.response?.data?.message ||
-              err.message ||
-              "Failed to load users",
+            err instanceof Error ? err.message : "Failed to load applications",
           );
         }
       } finally {
@@ -49,61 +51,64 @@ export default function Users() {
       }
     }
 
-    loadUsers();
+    loadApplications();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const cities = useMemo(() => {
-    const unique = new Set(users.map((u) => u.city).filter(Boolean));
+  const jobs = useMemo(() => {
+    const unique = new Set(
+      applications
+        .map((a) => a.jobTitle)
+      .filter((title) => Boolean(title)),
+    );
     return Array.from(unique).sort();
-  }, [users]);
+  }, [applications]);
 
-  const filteredUsers = useMemo(() => {
+  const filteredApplications = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return users.filter((user) => {
+    return applications.filter((app) => {
       const fullName =
-        `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+        `${app.jobSeekerFirstName || ""} ${app.jobSeekerLastName || ""}`.toLowerCase();
       const matchesSearch =
         !query ||
         fullName.includes(query) ||
-        user.email?.toLowerCase().includes(query) ||
-        user.currentJobTitle?.toLowerCase().includes(query);
+        app.jobSeekerEmail?.toLowerCase().includes(query) ||
+        app.jobTitle?.toLowerCase().includes(query) ||
+        app.companyName?.toLowerCase().includes(query);
 
       const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && user.enabled) ||
-        (statusFilter === "blocked" && !user.enabled);
+        statusFilter === "all" || app.status === statusFilter.toUpperCase();
+      const matchesJob = jobFilter === "all" || app.jobTitle === jobFilter;
 
-      const matchesCity = cityFilter === "all" || user.city === cityFilter;
-
-      return matchesSearch && matchesStatus && matchesCity;
+      return matchesSearch && matchesStatus && matchesJob;
     });
-  }, [users, search, statusFilter, cityFilter]);
+  }, [applications, search, statusFilter, jobFilter]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, cityFilter]);
+  }, [search, statusFilter, jobFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
-  const pageUsers = filteredUsers.slice(
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredApplications.length / PAGE_SIZE),
+  );
+  const pageApplications = filteredApplications.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
 
   const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter((u) => u.enabled).length;
-    const blocked = users.filter((u) => !u.enabled).length;
-    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const newThisWeek = users.filter(
-      (u) => u.createdAt && new Date(u.createdAt).getTime() >= weekAgo,
+    const total = applications.length;
+    const pending = applications.filter(
+      (a) => a.status === "PENDING" || a.status === "REVIEWING",
     ).length;
-
-    return { total, active, blocked, newThisWeek };
-  }, [users]);
+    const accepted = applications.filter((a) => a.status === "ACCEPTED").length;
+    const rejected = applications.filter((a) => a.status === "REJECTED").length;
+    return { total, pending, accepted, rejected };
+  }, [applications]);
 
   const pageNumbers = useMemo(() => {
     const maxVisible = 5;
@@ -121,56 +126,45 @@ export default function Users() {
       <header className="admin-header">
         <div>
           <p className="eyebrow">Management</p>
-          <h1>Users</h1>
+          <h1>Applications</h1>
         </div>
       </header>
 
       <section className="welcome-row">
         <div>
-          <h2>Job seekers</h2>
-          <p>Manage job seekers on HIRENA</p>
+          <h2>Candidate applications</h2>
+          <p>Review and manage job applications on HIRENA</p>
         </div>
-        <button
-          className="primary-button"
-          onClick={() => {
-            setNotice(
-              "Add user is not available yet — no backend endpoint exists for this action.",
-            );
-            window.setTimeout(() => setNotice(""), 4000);
-          }}
-        >
-          <span>＋</span>Add user
-        </button>
       </section>
 
-      <section className="metric-grid" aria-label="User statistics">
+      <section className="metric-grid" aria-label="Application statistics">
         <article className="metric-card">
           <div className="metric-copy plain">
-            <span>Total users</span>
+            <span>Total applications</span>
             <strong>{stats.total.toLocaleString()}</strong>
           </div>
         </article>
         <article className="metric-card">
           <div className="metric-copy plain">
-            <span>Active</span>
-            <strong className="tone-green">
-              {stats.active.toLocaleString()}
-            </strong>
-          </div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-copy plain">
-            <span>Blocked</span>
-            <strong className="tone-red">
-              {stats.blocked.toLocaleString()}
-            </strong>
-          </div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-copy plain">
-            <span>New this week</span>
+            <span>Pending / Reviewing</span>
             <strong className="tone-blue">
-              {stats.newThisWeek.toLocaleString()}
+              {stats.pending.toLocaleString()}
+            </strong>
+          </div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-copy plain">
+            <span>Accepted</span>
+            <strong className="tone-green">
+              {stats.accepted.toLocaleString()}
+            </strong>
+          </div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-copy plain">
+            <span>Rejected</span>
+            <strong className="tone-red">
+              {stats.rejected.toLocaleString()}
             </strong>
           </div>
         </article>
@@ -182,7 +176,7 @@ export default function Users() {
             <span aria-hidden="true">🔍</span>
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="Search by candidate, email, job or company..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -193,90 +187,92 @@ export default function Users() {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="all">Status: All</option>
-            <option value="active">Active</option>
-            <option value="blocked">Blocked</option>
+            <option value="pending">Pending</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
           </select>
 
           <select
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
+            value={jobFilter}
+            onChange={(e) => setJobFilter(e.target.value)}
           >
-            <option value="all">City: All</option>
-            {cities.map((city) => (
-              <option key={city} value={city}>
-                {city}
+            <option value="all">Job: All</option>
+            {jobs.map((job) => (
+              <option key={job} value={job}>
+                {job}
               </option>
             ))}
           </select>
         </div>
 
-        {error && <p className="table-message error">{error}</p>}
-        {loading && !error && <p className="table-message">Loading users…</p>}
-        {!loading && !error && filteredUsers.length === 0 && (
-          <p className="table-message">No users match your filters.</p>
+        <ErrorMessage message={error} />
+        {loading && !error && <LoadingState message="Loading applications…" />}
+        {!loading && !error && filteredApplications.length === 0 && (
+          <EmptyState message="No applications match your filters." />
         )}
 
-        {!loading && !error && filteredUsers.length > 0 && (
+        {!loading && !error && filteredApplications.length > 0 && (
           <>
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>USER</th>
-                    <th>EMAIL</th>
-                    <th>LOCATION</th>
+                    <th>CANDIDATE</th>
+                    <th>JOB</th>
+                    <th>COMPANY</th>
                     <th>STATUS</th>
+                    <th>APPLIED AT</th>
                     <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
-                  {pageUsers.map((user) => (
-                    <tr key={user.id}>
+                  {pageApplications.map((app) => (
+                    <tr key={app.id}>
                       <td>
                         <div className="user-cell">
                           <div className="app-avatar blue">
-                            {initials(user.firstName, user.lastName)}
+                            {initials(
+                              app.jobSeekerFirstName,
+                              app.jobSeekerLastName,
+                            )}
                           </div>
                           <div>
                             <strong>
-                              {user.firstName} {user.lastName}
+                              {app.jobSeekerFirstName} {app.jobSeekerLastName}
                             </strong>
                             <span className="user-subtext">
-                              {user.currentJobTitle || "No title set"}
+                              {app.jobSeekerEmail}
                             </span>
                           </div>
                         </div>
                       </td>
-                      <td>{user.email}</td>
+                      <td>{app.jobTitle}</td>
+                      <td>{app.companyName}</td>
                       <td>
-                        {[user.city, user.country].filter(Boolean).join(", ") ||
-                          "—"}
+                        <StatusBadge status={app.status} />
                       </td>
                       <td>
-                        <span
-                          className={`status-badge ${user.enabled ? "green" : "red"}`}
-                        >
-                          {user.enabled ? "Active" : "Blocked"}
-                        </span>
+                        {app.appliedAt
+                          ? new Date(app.appliedAt).toLocaleDateString()
+                          : "—"}
                       </td>
                       <td className="actions-cell">
                         <button
                           className="more-button"
                           aria-label="Row actions"
                           onClick={() =>
-                            setOpenMenuId(
-                              openMenuId === user.id ? null : user.id,
-                            )
+                            setOpenMenuId(openMenuId === app.id ? null : app.id)
                           }
                         >
                           •••
                         </button>
-                        {openMenuId === user.id && (
+                        {openMenuId === app.id && (
                           <div className="row-menu">
                             <button
                               onClick={() => {
                                 setOpenMenuId(null);
-                                navigate(`/admin/users/${user.id}`);
+                                navigate(`/admin/applications/${app.id}`);
                               }}
                             >
                               View details
@@ -318,11 +314,6 @@ export default function Users() {
           </>
         )}
       </section>
-      {notice && (
-        <div className="toast" role="status">
-          {notice}
-        </div>
-      )}
     </div>
   );
 }

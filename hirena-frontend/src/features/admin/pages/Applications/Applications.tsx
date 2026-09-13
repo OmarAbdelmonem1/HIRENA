@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllApplications } from "../../Services/ApplicationsService";
+import { getAllApplications } from "../../services/applicationsService";
 const PAGE_SIZE = 10;
 
 type ApplicationStatus = "PENDING" | "REVIEWING" | "ACCEPTED" | "REJECTED";

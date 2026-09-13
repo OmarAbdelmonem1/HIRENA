@@ -5,7 +5,8 @@ import {
   updateProfile,
   uploadProfileImage,
   uploadCv,
-} from "../Services/jobseekerService";
+  getMyCvFile,
+} from "../services/jobseekerService";
 import {
   COUNTRIES,
   EMPTY_CERTIFICATE,
@@ -60,6 +61,7 @@ function Profile() {
   const [error, setError] = useState("");
   const [uploadingCv, setUploadingCv] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [openingCv, setOpeningCv] = useState(false);
 
   useEffect(() => {
     getProfile()
@@ -155,6 +157,21 @@ function Profile() {
       setError(e.response?.data?.message || "Could not upload your CV.");
     } finally {
       setUploadingCv(false);
+    }
+  };
+
+  const openCv = async () => {
+    setOpeningCv(true);
+    setError("");
+    try {
+      const response = await getMyCvFile();
+      const url = URL.createObjectURL(response.data);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      setError(e.response?.data?.message || "Could not open your CV.");
+    } finally {
+      setOpeningCv(false);
     }
   };
 
@@ -436,6 +453,16 @@ function Profile() {
                   : "A CV helps companies learn more about your background."}
               </p>
             </div>
+            {form.cv && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={openCv}
+                disabled={openingCv}
+              >
+                {openingCv ? "Opening CV…" : "Open CV"}
+              </button>
+            )}
             <label className="upload-button">
               {uploadingCv
                 ? "Uploading…"

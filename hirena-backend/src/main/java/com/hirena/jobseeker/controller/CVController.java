@@ -6,8 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.hirena.jobseeker.entity.CV;
+import com.hirena.jobseeker.util.FileStorageService;
 
 @RestController
 @RequestMapping("/api/jobseeker/cv")
@@ -15,10 +18,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class CVController {
 
     private final CVService cvService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public ResponseEntity<CVResponse> getMyCv() {
         return ResponseEntity.ok(cvService.getMyCv());
+    }
+
+    @GetMapping("/file")
+    public ResponseEntity<byte[]> getMyCvFile() {
+        CV cv = cvService.getMyCvFile();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(cv.getFileType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + cv.getFileName().replace("\"", "") + "\"")
+                .body(fileStorageService.readFile(cv.getFilePath()));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

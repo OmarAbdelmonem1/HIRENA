@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAdminUserById } from "../../Services/JobSeekersService";
+import { getAdminUserById } from "../../services/jobSeekersService";
 
 function initials(firstName, lastName) {
   const first = firstName?.[0] || "";

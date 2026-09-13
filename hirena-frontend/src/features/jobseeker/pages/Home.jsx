@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCompanies, getJobs } from "../Services/jobseekerService";
+import { getCompanies, getJobs } from "../services/jobseekerService";
 import { JOB_CATEGORIES } from "../../../constants/jobSeekerProfile";
 
 const categoryIcons = ["💻", "🎨", "☁️", "🛠️", "📊", "🧪", "🧰", "💼"];

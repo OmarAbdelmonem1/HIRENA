@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { getJobs } from "../Services/jobseekerService";
+import { getJobs } from "../services/jobseekerService";
 import { JobCard } from "./Home";
 import { COUNTRIES, JOB_CATEGORIES } from "../../../constants/jobSeekerProfile";
 

@@ -5,6 +5,7 @@ import com.hirena.application.dto.ApplicationResponse;
 import com.hirena.application.dto.ApplicationStatusUpdateRequest;
 import com.hirena.application.entity.Application;
 import com.hirena.application.entity.ApplicationStatus;
+import com.hirena.application.entity.CvAnalysis;
 import com.hirena.application.repository.ApplicationRepository;
 import com.hirena.auth.security.CurrentUserProvider;
 import com.hirena.company.entity.Company;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +42,7 @@ public class ApplicationService {
     private final CompanyService companyService;
     private final CurrentUserProvider currentUserProvider;
     private final NotificationService notificationService;
+    private final ApplicationCvAnalysisAsyncService applicationCvAnalysisAsyncService;
 
     // ── JobSeeker: apply ──────────────────────────────────────────────────
 
@@ -63,9 +67,26 @@ public class ApplicationService {
                 .status(ApplicationStatus.PENDING)
                 .build();
 
+        CvAnalysis cvAnalysis = CvAnalysis.builder()
+                .application(application)
+                .status(jobSeeker.getCv() == null
+                        ? com.hirena.application.entity.CvAnalysisStatus.NOT_ANALYZED
+                        : com.hirena.application.entity.CvAnalysisStatus.ANALYZING)
+                .build();
+        application.setCvAnalysis(cvAnalysis);
         Application saved = applicationRepository.save(application);
         notificationService.applicationSubmitted(saved);
-        return ApplicationResponse.fromEntity(saved);
+        if (saved.getCvAnalysis().getStatus()
+                == com.hirena.application.entity.CvAnalysisStatus.ANALYZING) {
+            Long applicationId = saved.getId();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    applicationCvAnalysisAsyncService.analyze(applicationId);
+                }
+            });
+        }
+        return ApplicationResponse.fromEntity(saved, false);
     }
 
     // ── JobSeeker: own applications ───────────────────────────────────────
@@ -75,7 +96,7 @@ public class ApplicationService {
         JobSeeker jobSeeker = resolveJobSeeker();
         return applicationRepository.findAllByJobSeekerId(jobSeeker.getId())
                 .stream()
-                .map(ApplicationResponse::fromEntity)
+                .map(application -> ApplicationResponse.fromEntity(application, false))
                 .collect(Collectors.toList());
     }
 
@@ -84,7 +105,7 @@ public class ApplicationService {
         JobSeeker jobSeeker = resolveJobSeeker();
         Application application = applicationRepository.findByIdAndJobSeekerId(applicationId, jobSeeker.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + applicationId));
-        return ApplicationResponse.fromEntity(application);
+        return ApplicationResponse.fromEntity(application, false);
     }
 
     public void deleteMyApplication(Long applicationId) {
@@ -159,6 +180,18 @@ public class ApplicationService {
         Application application = applicationRepository.findByIdAndJobCompanyId(applicationId, company.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Application not found or does not belong to your company"));
+        CV cv = application.getJobSeeker().getCv();
+        if (cv == null) {
+            throw new ResourceNotFoundException("This candidate has not uploaded a CV");
+        }
+        return cv;
+    }
+
+    @Transactional(readOnly = true)
+    public CV getAdminApplicationCv(Long applicationId) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found with id: " + applicationId));
         CV cv = application.getJobSeeker().getCv();
         if (cv == null) {
             throw new ResourceNotFoundException("This candidate has not uploaded a CV");

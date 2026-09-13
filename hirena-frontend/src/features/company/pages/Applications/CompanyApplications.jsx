@@ -3,16 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getApplicationsForJob,
   getCompanyJobs,
-} from "../../Services/companyService";
+} from "../../services/companyService";
+import StatusBadge from "../../../../components/ui/StatusBadge";
+import ErrorMessage from "../../../../components/ui/ErrorMessage";
+import EmptyState from "../../../../components/ui/EmptyState";
 
-const tone = (value) =>
-  value === "ACCEPTED"
-    ? "green"
-    : value === "REJECTED"
-      ? "red"
-      : value === "REVIEWING"
-        ? "blue"
-        : "orange";
 const text = (value) => value?.replaceAll("_", " ") || "—";
 
 export default function CompanyApplications() {
@@ -75,7 +70,7 @@ export default function CompanyApplications() {
           <h1>Applications by job</h1>
         </div>
       </header>
-      {error && <p className="table-message error">{error}</p>}
+      <ErrorMessage message={error} />
       <section className="panel table-panel">
         <div className="panel-heading">
           <div>
@@ -156,11 +151,7 @@ export default function CompanyApplications() {
                       </small>
                     </td>
                     <td>
-                      <span
-                        className={`status-badge ${tone(application.status)}`}
-                      >
-                        {text(application.status)}
-                      </span>
+                      <StatusBadge status={application.status} />
                     </td>
                     <td>
                       {application.appliedAt
@@ -181,9 +172,7 @@ export default function CompanyApplications() {
               </tbody>
             </table>
             {!filtered.length && (
-              <p className="table-message">
-                No applications match your filters.
-              </p>
+              <EmptyState message="No applications match your filters." />
             )}
           </div>
         </section>
