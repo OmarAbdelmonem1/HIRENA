@@ -1,6 +1,7 @@
 package com.hirena.application.repository;
 
 import com.hirena.application.entity.Application;
+import com.hirena.application.entity.ApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 
@@ -30,6 +31,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     // Analytics
     long countByJobId(Long jobId);
+    long countByJobIdAndStatus(Long jobId, ApplicationStatus status);
     void deleteByJobId(Long jobId);
 
     // Admin statistics

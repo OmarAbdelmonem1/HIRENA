@@ -2,6 +2,7 @@ import api from '../../../api/axios';
 
 export const getCompanyJobs = () => api.get('/api/company/jobs').then((r) => r.data);
 export const getCompanyJob = (id) => api.get(`/api/company/jobs/${id}`).then((r) => r.data);
+export const getCompanyJobAnalytics = (id) => api.get(`/api/company/jobs/${id}/analytics`).then((r) => r.data);
 export const createCompanyJob = (data) => api.post('/api/company/jobs', data).then((r) => r.data);
 export const updateCompanyJob = (id, data) => api.put(`/api/company/jobs/${id}`, data).then((r) => r.data);
 export const deleteCompanyJob = (id) => api.delete(`/api/company/jobs/${id}`);

@@ -14,4 +14,6 @@ public class JobAnalyticsResponse {
     private long totalViews;
     private long uniqueViewers;
     private long totalApplications;
+    private long admittedApplications;
+    private long rejectedApplications;
 }

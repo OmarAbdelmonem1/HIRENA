@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class JobResponse {
 
     private Long id;
@@ -33,6 +33,7 @@ public class JobResponse {
     private String rejectionReason;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private long uniqueViewers;
 
     public static JobResponse fromEntity(Job job) {
         return JobResponse.builder()

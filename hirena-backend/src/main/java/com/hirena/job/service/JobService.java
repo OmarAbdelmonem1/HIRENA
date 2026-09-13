@@ -1,6 +1,7 @@
 package com.hirena.job.service;
 
 import com.hirena.application.repository.ApplicationRepository;
+import com.hirena.application.entity.ApplicationStatus;
 import com.hirena.auth.security.CurrentUserProvider;
 import com.hirena.company.entity.Company;
 import com.hirena.company.service.CompanyService;
@@ -82,7 +83,10 @@ public class JobService {
         Company company = companyService.getCompanyForCurrentUser();
         Job job = jobRepository.findByIdAndCompanyId(jobId, company.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Job not found or does not belong to your company"));
-        return JobResponse.fromEntity(job);
+        return JobResponse.fromEntity(job)
+                .toBuilder()
+                .uniqueViewers(jobViewRepository.countDistinctJobSeekerByJobId(jobId))
+                .build();
     }
 
     public JobResponse updateJob(Long jobId, JobRequest request) {
@@ -136,7 +140,13 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
     @Transactional(readOnly = true)
     public AdminJobDetailsResponse getAdminJob(Long id) {
         Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + id));
-        return AdminJobDetailsResponse.builder().job(JobResponse.fromEntity(job)).applicationsCount(applicationRepository.countByJobId(id)).build();
+        return AdminJobDetailsResponse.builder()
+                .job(JobResponse.fromEntity(job))
+                .applicationsCount(applicationRepository.countByJobId(id))
+                .uniqueViewers(jobViewRepository.countDistinctJobSeekerByJobId(id))
+                .admittedApplications(applicationRepository.countByJobIdAndStatus(id, ApplicationStatus.ACCEPTED))
+                .rejectedApplications(applicationRepository.countByJobIdAndStatus(id, ApplicationStatus.REJECTED))
+                .build();
     }
 
     public JobResponse updateAdminJob(Long id, JobRequest request) {
@@ -241,7 +251,10 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
         // Record view if the requester is an authenticated JobSeeker
         tryRecordView(job);
 
-        return JobResponse.fromEntity(job);
+        return JobResponse.fromEntity(job)
+                .toBuilder()
+                .uniqueViewers(jobViewRepository.countDistinctJobSeekerByJobId(jobId))
+                .build();
     }
 
     private void tryRecordView(Job job) {
@@ -291,6 +304,8 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
                 .totalViews(totalViews)
                 .uniqueViewers(uniqueViewers)
                 .totalApplications(totalApplications)
+                .admittedApplications(applicationRepository.countByJobIdAndStatus(jobId, ApplicationStatus.ACCEPTED))
+                .rejectedApplications(applicationRepository.countByJobIdAndStatus(jobId, ApplicationStatus.REJECTED))
                 .build();
     }
 }
