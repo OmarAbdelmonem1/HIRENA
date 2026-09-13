@@ -14,5 +14,6 @@ public class AdminStatisticsResponse {
     private long pendingJobs;
     private long approvedJobs;
     private long rejectedJobs;
+    private long closedJobs;
     private long totalApplications;
 }

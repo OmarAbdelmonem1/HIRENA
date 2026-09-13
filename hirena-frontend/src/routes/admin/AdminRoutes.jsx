@@ -7,6 +7,8 @@ import Dashboard from '../../features/admin/pages/Dashboard/Dashboard';
 
 import JobSeekerRoutes from './JobSeekerRoutes';
 import CompanyRoutes from './CompanyRoutes';
+import JobRoutes from './JobRoutes';
+import Applications from './ApplicationRoutes';
 
 
 export default function AdminRoutes() {
@@ -23,7 +25,8 @@ export default function AdminRoutes() {
 
         <Route path="users/*" element={<JobSeekerRoutes />} />
         <Route path="companies/*" element={<CompanyRoutes />} />
-
+        <Route path="jobs/*" element={<JobRoutes />} />
+        <Route path="applications/*" element={<Applications />} />
       </Route>
     </Routes>
   );

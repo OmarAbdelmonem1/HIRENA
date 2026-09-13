@@ -7,11 +7,14 @@ import com.hirena.company.service.CompanyService;
 import com.hirena.exception.BadRequestException;
 import com.hirena.exception.ResourceNotFoundException;
 import com.hirena.job.dto.AdminJobRejectionRequest;
+import com.hirena.job.dto.AdminJobListResponse;
+import com.hirena.job.dto.AdminJobDetailsResponse;
 import com.hirena.job.dto.JobAnalyticsResponse;
 import com.hirena.job.dto.JobRequest;
 import com.hirena.job.dto.JobResponse;
 import com.hirena.job.entity.Job;
 import com.hirena.job.entity.JobStatus;
+import com.hirena.job.entity.EmploymentType;
 import com.hirena.job.entity.JobView;
 import com.hirena.job.repository.JobRepository;
 import com.hirena.job.repository.JobViewRepository;
@@ -117,6 +120,34 @@ public class JobService {
                 .map(JobResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+@Transactional(readOnly = true)
+public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
+
+    return jobRepository
+            .findAll(pageable)
+            .map(j -> AdminJobListResponse.from(
+                    j,
+                    applicationRepository.countByJobId(j.getId())
+            ));
+}
+    @Transactional(readOnly = true)
+    public AdminJobDetailsResponse getAdminJob(Long id) {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + id));
+        return AdminJobDetailsResponse.builder().job(JobResponse.fromEntity(job)).applicationsCount(applicationRepository.countByJobId(id)).build();
+    }
+
+    public JobResponse updateAdminJob(Long id, JobRequest request) {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + id));
+        job.setTitle(request.getTitle()); job.setDescription(request.getDescription()); job.setRequirements(request.getRequirements()); job.setLocation(request.getLocation()); job.setSalaryMin(request.getSalaryMin()); job.setSalaryMax(request.getSalaryMax()); job.setEmploymentType(request.getEmploymentType()); job.setExperienceRequired(request.getExperienceRequired()); job.setDeadline(request.getDeadline());
+        return JobResponse.fromEntity(jobRepository.save(job));
+    }
+
+    public void deleteAdminJob(Long id) {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + id));
+        applicationRepository.deleteByJobId(id); jobRepository.delete(job);
+    }
+
+    private String blank(String value) { return value == null || value.isBlank() ? null : value.trim(); }
 
     public JobResponse approveJob(Long jobId) {
         Job job = jobRepository.findById(jobId)

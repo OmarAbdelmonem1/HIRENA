@@ -38,6 +38,7 @@ public class AdminStatisticsController {
                 .pendingJobs(jobRepository.countByStatus(JobStatus.PENDING))
                 .approvedJobs(jobRepository.countByStatus(JobStatus.APPROVED))
                 .rejectedJobs(jobRepository.countByStatus(JobStatus.REJECTED))
+                .closedJobs(jobRepository.countByStatus(JobStatus.CLOSED))
                 .totalApplications(applicationRepository.count())
                 .build();
 

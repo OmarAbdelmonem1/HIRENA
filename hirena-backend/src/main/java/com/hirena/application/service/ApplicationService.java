@@ -17,6 +17,9 @@ import com.hirena.job.repository.JobRepository;
 import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -148,5 +151,24 @@ public class ApplicationService {
         return jobSeekerRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "JobSeeker profile not found. Create a profile first."));
-    }
+    } 
+    //admin 
+@Transactional(readOnly = true)
+public Page<ApplicationResponse> getAllApplications(Pageable pageable) {
+
+    return applicationRepository
+            .findAll(pageable)
+            .map(ApplicationResponse::fromEntity);
+}
+@Transactional(readOnly = true)
+public ApplicationResponse getApplicationById(Long id) {
+
+    Application application = applicationRepository
+            .findById(id)
+            .orElseThrow(() ->
+                    new RuntimeException("Application not found")
+            );
+
+    return ApplicationResponse.fromEntity(application);
+}
 }
