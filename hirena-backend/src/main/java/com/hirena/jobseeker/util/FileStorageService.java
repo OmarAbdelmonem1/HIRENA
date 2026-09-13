@@ -1,6 +1,7 @@
 package com.hirena.jobseeker.util;
 
 import com.hirena.jobseeker.exception.BadRequestException;
+import com.hirena.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +37,9 @@ public class FileStorageService {
     @Value("${app.upload.profile-image-dir:uploads/profile-images}")
     private String profileImageDir;
 
+    @Value("${app.upload.company-logo-dir:uploads/company-logos}")
+    private String companyLogoDir;
+
     @Value("${app.upload.cv-dir:uploads/cvs}")
     private String cvDir;
 
@@ -57,6 +61,47 @@ public class FileStorageService {
         if (relativePath != null) deleteFile(relativePath);
     }
 
+    public String storeCompanyLogo(MultipartFile file) {
+        validateFile(file, ALLOWED_IMAGE_TYPES, maxImageSizeMb,
+                "Only JPEG, PNG, WebP, or GIF images are allowed");
+        return store(file, companyLogoDir);
+    }
+
+    public String storeExternalCompanyLogo(byte[] content, String contentType) {
+        if (content == null || content.length == 0) {
+            throw new BadRequestException("Downloaded company logo is empty");
+        }
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            throw new BadRequestException("Downloaded company logo is not a supported image");
+        }
+        long maxBytes = maxImageSizeMb * 1024 * 1024;
+        if (content.length > maxBytes) {
+            throw new BadRequestException("Downloaded company logo exceeds the maximum allowed size");
+        }
+
+        String extension = switch (contentType.toLowerCase()) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
+            default -> throw new BadRequestException("Downloaded company logo is not a supported image");
+        };
+
+        try {
+            Path directory = Paths.get(companyLogoDir).toAbsolutePath().normalize();
+            Files.createDirectories(directory);
+            Path target = directory.resolve(UUID.randomUUID() + extension);
+            Files.write(target, content);
+            return companyLogoDir + "/" + target.getFileName();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store downloaded company logo", e);
+        }
+    }
+
+    public void deleteCompanyLogo(String relativePath) {
+        if (relativePath != null) deleteFile(relativePath);
+    }
+
     // ── CVs ──────────────────────────────────────────────────────────────
 
     public String storeCv(MultipartFile file) {
@@ -67,6 +112,14 @@ public class FileStorageService {
 
     public void deleteCv(String relativePath) {
         if (relativePath != null) deleteFile(relativePath);
+    }
+
+    public byte[] readFile(String relativePath) {
+        try {
+            return Files.readAllBytes(Paths.get(relativePath).toAbsolutePath().normalize());
+        } catch (IOException e) {
+            throw new ResourceNotFoundException("Uploaded file is no longer available");
+        }
     }
 
     // ── Internal helpers ─────────────────────────────────────────────────

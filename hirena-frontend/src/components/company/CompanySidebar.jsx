@@ -12,6 +12,7 @@ export default function CompanySidebar() {
       <NavLink to="/company/dashboard" className={link}><span className="sidebar-icon">▦</span><span>Dashboard</span></NavLink>
       <NavLink to="/company/jobs" className={link}><span className="sidebar-icon">▣</span><span>My Jobs</span></NavLink>
       <NavLink to="/company/applications" className={link}><span className="sidebar-icon">▤</span><span>Applications</span></NavLink>
+      <NavLink to="/company/profile" className={link}><span className="sidebar-icon">◉</span><span>Company Profile</span></NavLink>
     </div>
     <div className="sidebar-bottom"><button className="logout-button" onClick={() => { logout(); navigate('/'); }}><span className="sidebar-icon">↪</span><span>Logout</span></button></div>
   </aside>;

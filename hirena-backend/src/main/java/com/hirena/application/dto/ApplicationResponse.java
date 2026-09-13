@@ -23,6 +23,14 @@ public class ApplicationResponse {
     private String jobSeekerFirstName;
     private String jobSeekerLastName;
     private String jobSeekerEmail;
+    private String jobSeekerPhone;
+    private String jobSeekerCity;
+    private String jobSeekerCountry;
+    private String jobSeekerProfileImage;
+    private String jobSeekerBio;
+    private String jobSeekerTargetJobTitle;
+    private Integer jobSeekerYearsOfExperience;
+    private String jobSeekerCvFileName;
 
     private String coverLetter;
     private ApplicationStatus status;
@@ -38,7 +46,18 @@ public class ApplicationResponse {
                 .jobSeekerId(application.getJobSeeker().getId())
                 .jobSeekerFirstName(application.getJobSeeker().getFirstName())
                 .jobSeekerLastName(application.getJobSeeker().getLastName())
-                .jobSeekerEmail(application.getJobSeeker().getUser().getEmail())
+                .jobSeekerEmail(application.getJobSeeker().getUser() != null
+                        ? application.getJobSeeker().getUser().getEmail()
+                        : null)
+                .jobSeekerPhone(application.getJobSeeker().getPhone())
+                .jobSeekerCity(application.getJobSeeker().getCity())
+                .jobSeekerCountry(application.getJobSeeker().getCountry())
+                .jobSeekerProfileImage(application.getJobSeeker().getProfileImage())
+                .jobSeekerBio(application.getJobSeeker().getBio())
+                .jobSeekerTargetJobTitle(application.getJobSeeker().getCurrentJobTitle())
+                .jobSeekerYearsOfExperience(application.getJobSeeker().getYearsOfExperience())
+                .jobSeekerCvFileName(application.getJobSeeker().getCv() != null
+                        ? application.getJobSeeker().getCv().getFileName() : null)
                 .coverLetter(application.getCoverLetter())
                 .status(application.getStatus())
                 .appliedAt(application.getAppliedAt())

@@ -1,17 +1,12 @@
 package com.hirena.application.repository;
 
 import com.hirena.application.entity.Application;
-import com.hirena.application.entity.ApplicationStatus;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
 
     // JobSeeker: own applications
@@ -27,8 +22,10 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     Optional<Application> findByIdAndJobId(Long applicationId, Long jobId);
 
+    @EntityGraph(attributePaths = {"job", "job.company", "jobSeeker", "jobSeeker.user"})
     List<Application> findAllByJobCompanyId(Long companyId);
 
+    @EntityGraph(attributePaths = {"job", "job.company", "jobSeeker", "jobSeeker.user"})
     Optional<Application> findByIdAndJobCompanyId(Long applicationId, Long companyId);
 
     // Analytics

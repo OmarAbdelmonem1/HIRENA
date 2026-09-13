@@ -3,6 +3,7 @@ package com.hirena.job.dto;
 import com.hirena.job.entity.EmploymentType;
 import com.hirena.job.entity.Job;
 import com.hirena.job.entity.JobStatus;
+import com.hirena.job.entity.JobCategory;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,6 +26,7 @@ public class JobResponse {
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
     private EmploymentType employmentType;
+    private JobCategory category;
     private Integer experienceRequired;
     private LocalDate deadline;
     private JobStatus status;
@@ -45,6 +47,7 @@ public class JobResponse {
                 .salaryMin(job.getSalaryMin())
                 .salaryMax(job.getSalaryMax())
                 .employmentType(job.getEmploymentType())
+                .category(job.getCategory())
                 .experienceRequired(job.getExperienceRequired())
                 .deadline(job.getDeadline())
                 .status(job.getStatus())

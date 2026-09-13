@@ -19,6 +19,30 @@ export const COUNTRIES = [
   'Other',
 ];
 
+export const JOB_CATEGORIES = [
+  ['', 'All categories'],
+  ['FRONTEND', 'Frontend Development'],
+  ['BACKEND', 'Backend Development'],
+  ['FULL_STACK', 'Full Stack Development'],
+  ['CLOUD_DEVOPS', 'Cloud & DevOps'],
+  ['SOFTWARE_ENGINEERING', 'Software Engineering'],
+  ['DATA_AI', 'Data & AI'],
+  ['UI_UX_DESIGN', 'UI/UX Design'],
+  ['QA_TESTING', 'QA & Testing'],
+  ['IT_HELP_DESK', 'IT Help Desk'],
+  ['CYBERSECURITY', 'Cybersecurity'],
+  ['SALES', 'Sales'],
+  ['MARKETING', 'Marketing'],
+  ['FINANCE', 'Finance'],
+  ['HUMAN_RESOURCES', 'Human Resources'],
+  ['REAL_ESTATE', 'Real Estate'],
+  ['CUSTOMER_SERVICE', 'Customer Service'],
+  ['HEALTHCARE', 'Healthcare'],
+  ['ENGINEERING', 'Engineering'],
+  ['EDUCATION', 'Education'],
+  ['OTHER', 'Other'],
+];
+
 export const EMPTY_EDUCATION = {
   institutionName: '',
   degree: '',

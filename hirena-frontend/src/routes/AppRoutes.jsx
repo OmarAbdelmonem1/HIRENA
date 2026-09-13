@@ -18,6 +18,7 @@ import SavedJobs from '../features/jobseeker/pages/SavedJobs';
 import Notifications from '../features/jobseeker/pages/Notifications';
 import Profile from '../features/jobseeker/pages/Profile';
 import Companies from '../features/jobseeker/pages/Companies';
+import CompanyDetails from '../features/jobseeker/pages/CompanyDetails';
 import Register from '../features/auth/Register';
 
 export default function AppRoutes() {
@@ -33,6 +34,7 @@ export default function AppRoutes() {
         <Route path="/jobs/:id" element={<JobDetails />} />
         <Route path="/jobs/:id/apply" element={<Apply />} />
         <Route path="/companies" element={<Companies />} />
+        <Route path="/companies/:id" element={<CompanyDetails />} />
         <Route path="/applications" element={<Applications />} />
         <Route path="/applications/:id" element={<ApplicationDetails />} />
         <Route path="/saved-jobs" element={<SavedJobs />} />

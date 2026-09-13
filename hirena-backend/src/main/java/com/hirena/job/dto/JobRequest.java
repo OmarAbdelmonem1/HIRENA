@@ -1,6 +1,7 @@
 package com.hirena.job.dto;
 
 import com.hirena.job.entity.EmploymentType;
+import com.hirena.job.entity.JobCategory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,6 +29,7 @@ public class JobRequest {
 
     @NotNull(message = "Employment type is required")
     private EmploymentType employmentType;
+    private JobCategory category;
 
     private Integer experienceRequired;
     private LocalDate deadline;

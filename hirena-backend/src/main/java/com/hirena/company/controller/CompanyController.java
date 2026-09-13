@@ -7,11 +7,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/company/")
+@RequestMapping("/api/company")
 @RequiredArgsConstructor
 public class CompanyController {
 
@@ -41,4 +40,5 @@ public class CompanyController {
         companyService.deleteProfile();
         return ResponseEntity.noContent().build();
     }
+
 }

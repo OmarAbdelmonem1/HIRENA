@@ -7,6 +7,7 @@ import CompanyJobForm from '../../features/company/pages/Jobs/CompanyJobForm';
 import CompanyJobDetails from '../../features/company/pages/Jobs/CompanyJobDetails';
 import CompanyApplications from '../../features/company/pages/Applications/CompanyApplications';
 import CompanyApplicationDetails from '../../features/company/pages/Applications/CompanyApplicationDetails';
+import CompanyProfile from '../../features/company/pages/Profile/CompanyProfile';
 
 export default function CompanyRoutes() {
   return (
@@ -20,6 +21,7 @@ export default function CompanyRoutes() {
         <Route path="jobs/:id/edit" element={<CompanyJobForm />} />
         <Route path="applications" element={<CompanyApplications />} />
         <Route path="applications/:id" element={<CompanyApplicationDetails />} />
+        <Route path="profile" element={<CompanyProfile />} />
       </Route>
     </Routes>
   );

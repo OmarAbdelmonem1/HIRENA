@@ -15,14 +15,15 @@ import com.hirena.job.dto.JobResponse;
 import com.hirena.job.entity.Job;
 import com.hirena.job.entity.JobStatus;
 import com.hirena.job.entity.EmploymentType;
+import com.hirena.job.entity.JobCategory;
 import com.hirena.job.entity.JobView;
 import com.hirena.job.repository.JobRepository;
 import com.hirena.job.repository.JobViewRepository;
-import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,7 @@ public class JobService {
                 .salaryMin(request.getSalaryMin())
                 .salaryMax(request.getSalaryMax())
                 .employmentType(request.getEmploymentType())
+                .category(request.getCategory())
                 .experienceRequired(request.getExperienceRequired())
                 .deadline(request.getDeadline())
                 .status(JobStatus.PENDING)
@@ -95,6 +97,7 @@ public class JobService {
         job.setSalaryMin(request.getSalaryMin());
         job.setSalaryMax(request.getSalaryMax());
         job.setEmploymentType(request.getEmploymentType());
+        job.setCategory(request.getCategory());
         job.setExperienceRequired(request.getExperienceRequired());
         job.setDeadline(request.getDeadline());
         // Reset to PENDING so admin re-reviews after edits
@@ -180,8 +183,49 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
     // ── Public / JobSeeker: approved jobs ────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Page<JobResponse> getApprovedJobs(Pageable pageable) {
-        return jobRepository.findAllByStatus(JobStatus.APPROVED, pageable)
+    public Page<JobResponse> getApprovedJobs(Pageable pageable, String keyword, String location,
+                                             EmploymentType employmentType, JobCategory category,
+                                             Integer minExperience) {
+        Specification<Job> specification = (root, query, criteriaBuilder) -> {
+            var predicates = criteriaBuilder.and(
+                    criteriaBuilder.equal(root.get("status"), JobStatus.APPROVED));
+
+            String normalizedKeyword = blank(keyword);
+            if (normalizedKeyword != null) {
+                String pattern = "%" + normalizedKeyword.toLowerCase() + "%";
+                var company = root.join("company");
+                predicates = criteriaBuilder.and(predicates, criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), pattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("requirements")), pattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(company.get("companyName")), pattern)));
+            }
+
+            String normalizedLocation = blank(location);
+            if (normalizedLocation != null) {
+                predicates = criteriaBuilder.and(predicates,
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("location")),
+                                "%" + normalizedLocation.toLowerCase() + "%"));
+            }
+
+            if (employmentType != null) {
+                predicates = criteriaBuilder.and(predicates,
+                        criteriaBuilder.equal(root.get("employmentType"), employmentType));
+            }
+            if (category != null) {
+                predicates = criteriaBuilder.and(predicates,
+                        criteriaBuilder.equal(root.get("category"), category));
+            }
+
+            if (minExperience != null) {
+                predicates = criteriaBuilder.and(predicates,
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("experienceRequired"), minExperience));
+            }
+
+            return predicates;
+        };
+
+        return jobRepository.findAll(specification, pageable)
                 .map(JobResponse::fromEntity);
     }
 

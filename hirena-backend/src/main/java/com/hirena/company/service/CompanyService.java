@@ -8,19 +8,39 @@ import com.hirena.company.repository.CompanyRepository;
 import com.hirena.exception.BadRequestException;
 import com.hirena.exception.ResourceNotFoundException;
 import com.hirena.user.entity.User;
+import com.hirena.jobseeker.util.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CompanyService {
 
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
+    private static final int MAX_DOWNLOAD_BYTES = 5 * 1024 * 1024;
+
     private final CompanyRepository companyRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final FileStorageService fileStorageService;
     @Transactional(readOnly = true)
     public CompanyResponse getCompanyById(Long id) {
         return CompanyResponse.fromEntity(companyRepository.findById(id)
@@ -59,10 +79,26 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public List<CompanyResponse> getPublicCompanies() {
-        return companyRepository.findAll().stream()
+    public Page<CompanyResponse> getPublicCompanies(String keyword, String industry, Pageable pageable) {
+        Specification<Company> specification = (root, query, cb) -> {
+            var predicate = cb.conjunction();
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = "%" + keyword.trim().toLowerCase() + "%";
+                predicate = cb.and(predicate, cb.like(cb.lower(root.get("companyName")), pattern));
+            }
+            if (industry != null && !industry.isBlank()) {
+                predicate = cb.and(predicate, cb.equal(cb.lower(root.get("industry")), industry.trim().toLowerCase()));
+            }
+            return predicate;
+        };
+        return companyRepository.findAll(specification, pageable).map(CompanyResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public CompanyResponse getPublicCompany(Long id) {
+        return companyRepository.findById(id)
                 .map(CompanyResponse::fromEntity)
-                .collect(Collectors.toList());
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found"));
     }
 
     public CompanyResponse updateProfile(CompanyRequest request) {
@@ -85,8 +121,10 @@ public class CompanyService {
 
     public void deleteProfile() {
         Company company = getCompanyForCurrentUser();
+        fileStorageService.deleteCompanyLogo(company.getLogo());
         companyRepository.delete(company);
     }
+
 
     /**
      * Resolves the Company that belongs to the currently authenticated user.

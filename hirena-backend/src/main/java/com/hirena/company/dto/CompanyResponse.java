@@ -29,7 +29,7 @@ public class CompanyResponse {
     public static CompanyResponse fromEntity(Company company) {
         return CompanyResponse.builder()
                 .id(company.getId())
-                .userId(company.getUser().getId())
+                .userId(company.getUser() != null ? company.getUser().getId() : null)
                 .companyName(company.getCompanyName())
                 .description(company.getDescription())
                 .industry(company.getIndustry())

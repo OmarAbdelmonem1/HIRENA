@@ -3,6 +3,7 @@ import {
   createProfile,
   getProfile,
   updateProfile,
+  uploadProfileImage,
   uploadCv,
 } from '../Services/jobseekerService';
 import {
@@ -58,6 +59,7 @@ function Profile() {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [uploadingCv, setUploadingCv] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     getProfile()
@@ -158,6 +160,36 @@ function Profile() {
       }
   };
 
+  const handleProfileImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!hasProfile) {
+      setError('Save your personal information before uploading a profile picture.');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('Please upload a JPG, PNG, WebP, or GIF image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Profile picture must be 5 MB or smaller.');
+      return;
+    }
+    setError('');
+    setNotice('');
+    setUploadingImage(true);
+    try {
+      const saved = await uploadProfileImage(file);
+      setForm(toForm(saved));
+      setNotice('Profile picture uploaded successfully.');
+    } catch (e) {
+      setError(e.response?.data?.message || 'Could not upload your profile picture.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     setError('');
@@ -215,6 +247,20 @@ function Profile() {
           the best version of you.
         </p>
       </section>
+
+      <div className="profile-photo-card">
+        <div className="profile-photo-placeholder">
+          {form.profileImage ? <img src={form.profileImage} alt="Profile" /> : `${form.firstName?.[0] || ''}${form.lastName?.[0] || ''}` || '?'}
+        </div>
+        <div>
+          <strong>Profile picture</strong>
+          <p>Use a clear JPG, PNG, WebP, or GIF image up to 5 MB.</p>
+        </div>
+        <label className="secondary-button upload-inline-button">
+          {uploadingImage ? 'Uploading…' : 'Upload picture'}
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleProfileImageUpload} disabled={uploadingImage} />
+        </label>
+      </div>
 
       <form className="profile-form panel" onSubmit={submit}>
         {(error || notice) && (

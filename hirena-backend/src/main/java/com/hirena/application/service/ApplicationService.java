@@ -16,6 +16,7 @@ import com.hirena.job.entity.JobStatus;
 import com.hirena.job.repository.JobRepository;
 import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
+import com.hirena.jobseeker.entity.CV;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -141,6 +142,19 @@ public class ApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Application not found or does not belong to your company"));
         return ApplicationResponse.fromEntity(application);
+    }
+
+    @Transactional(readOnly = true)
+    public CV getCompanyApplicationCv(Long applicationId) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Application application = applicationRepository.findByIdAndJobCompanyId(applicationId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found or does not belong to your company"));
+        CV cv = application.getJobSeeker().getCv();
+        if (cv == null) {
+            throw new ResourceNotFoundException("This candidate has not uploaded a CV");
+        }
+        return cv;
     }
 
     public ApplicationResponse updateCompanyApplicationStatus(

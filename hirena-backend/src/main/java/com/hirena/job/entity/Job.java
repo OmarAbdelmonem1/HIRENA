@@ -48,6 +48,10 @@ public class Job {
     @Column(name = "employment_type")
     private EmploymentType employmentType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    private JobCategory category;
+
     @Column(name = "experience_required")
     private Integer experienceRequired;
 

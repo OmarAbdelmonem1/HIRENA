@@ -1,6 +1,7 @@
 import api from '../../../api/axios';
 export const getJobs = (params = {}) => api.get('/api/jobs', { params }).then((r) => r.data);
-export const getCompanies = () => api.get('/api/public/companies').then((r) => r.data);
+export const getCompanies = (params = {}) => api.get('/api/public/companies', { params }).then((r) => r.data);
+export const getCompany = (id, params = {}) => api.get(`/api/public/companies/${id}`, { params }).then((r) => r.data);
 export const getJob = (id) => api.get(`/api/jobs/${id}`).then((r) => r.data);
 export const applyToJob = (id, coverLetter) => api.post(`/api/jobs/${id}/apply`, { coverLetter }).then((r) => r.data);
 export const getApplications = () => api.get('/api/jobseeker/applications').then((r) => r.data);
@@ -15,6 +16,13 @@ export const uploadCv = (file, replace = false) => {
     method: replace ? 'put' : 'post',
     url: '/api/jobseeker/cv',
     data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((r) => r.data);
+};
+export const uploadProfileImage = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/api/jobseeker/profile/image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }).then((r) => r.data);
 };
