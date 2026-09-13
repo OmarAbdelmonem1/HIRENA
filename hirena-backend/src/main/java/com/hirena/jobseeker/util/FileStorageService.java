@@ -20,7 +20,7 @@ import java.util.UUID;
  *   app.upload.profile-image-dir=uploads/profile-images
  *   app.upload.cv-dir=uploads/cvs
  *   app.upload.max-image-size-mb=5
- *   app.upload.max-cv-size-mb=10
+ *   app.upload.max-cv-size-mb=3
  */
 @Service
 public class FileStorageService {
@@ -42,7 +42,7 @@ public class FileStorageService {
     @Value("${app.upload.max-image-size-mb:5}")
     private long maxImageSizeMb;
 
-    @Value("${app.upload.max-cv-size-mb:10}")
+    @Value("${app.upload.max-cv-size-mb:3}")
     private long maxCvSizeMb;
 
     // ── Profile images ────────────────────────────────────────────────────

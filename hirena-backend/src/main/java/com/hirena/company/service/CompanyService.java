@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -54,6 +56,13 @@ public class CompanyService {
     @Transactional(readOnly = true)
     public CompanyResponse getMyProfile() {
         return CompanyResponse.fromEntity(getCompanyForCurrentUser());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompanyResponse> getPublicCompanies() {
+        return companyRepository.findAll().stream()
+                .map(CompanyResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     public CompanyResponse updateProfile(CompanyRequest request) {

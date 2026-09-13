@@ -1,0 +1,3 @@
+export default function Notifications() {
+  return <div className="profile-page"><section className="page-intro"><span className="eyebrow">STAY IN THE LOOP</span><h1>Notifications</h1><p>Updates about your applications and opportunities.</p></section><div className="notification-list"><div className="notification-item"><span className="notification-icon">✦</span><div><strong>Welcome to HIRENA</strong><p>Complete your profile to help companies discover you.</p><small>Just now</small></div></div><div className="notification-item"><span className="notification-icon">✓</span><div><strong>Start exploring</strong><p>New opportunities are waiting for you in our jobs board.</p><small>Today</small></div></div></div></div>;
+}

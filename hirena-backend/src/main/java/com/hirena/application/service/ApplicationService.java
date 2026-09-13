@@ -125,11 +125,43 @@ public class ApplicationService {
         return ApplicationResponse.fromEntity(applicationRepository.save(application));
     }
 
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getApplicationsForCurrentCompany() {
+        Company company = companyService.getCompanyForCurrentUser();
+        return applicationRepository.findAllByJobCompanyId(company.getId())
+                .stream()
+                .map(ApplicationResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationResponse getCompanyApplication(Long applicationId) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Application application = applicationRepository.findByIdAndJobCompanyId(applicationId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found or does not belong to your company"));
+        return ApplicationResponse.fromEntity(application);
+    }
+
+    public ApplicationResponse updateCompanyApplicationStatus(
+            Long applicationId, ApplicationStatusUpdateRequest request) {
+        Company company = companyService.getCompanyForCurrentUser();
+        Application application = applicationRepository.findByIdAndJobCompanyId(applicationId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found or does not belong to your company"));
+
+        validateStatusTransition(application.getStatus(), request.getStatus());
+        application.setStatus(request.getStatus());
+        return ApplicationResponse.fromEntity(applicationRepository.save(application));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private void validateStatusTransition(ApplicationStatus current, ApplicationStatus next) {
         boolean valid = switch (current) {
-            case PENDING -> next == ApplicationStatus.REVIEWING || next == ApplicationStatus.REJECTED;
+            case PENDING -> next == ApplicationStatus.REVIEWING
+                    || next == ApplicationStatus.ACCEPTED
+                    || next == ApplicationStatus.REJECTED;
             case REVIEWING -> next == ApplicationStatus.ACCEPTED || next == ApplicationStatus.REJECTED;
             default -> false;
         };

@@ -5,7 +5,7 @@ import {
   useState,
 } from 'react';
 
-import { login as loginService } from '../features/auth/authService';
+import { login as loginService, register as registerService } from '../features/auth/authService';
 
 const AuthContext = createContext(null);
 
@@ -55,6 +55,22 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  const register = async (email, password) => {
+    const data = await registerService(email, password);
+    const userData = {
+      userId: data.userId,
+      email: data.email,
+      role: data.role,
+    };
+
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('tokenType', data.tokenType || 'Bearer');
+    localStorage.setItem('auth_user', JSON.stringify(userData));
+    setToken(data.token);
+    setUser(userData);
+    return userData;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('tokenType');
@@ -71,6 +87,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
+        register,
         logout,
         isAuthenticated: !!token,
       }}
