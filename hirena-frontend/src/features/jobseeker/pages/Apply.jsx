@@ -19,8 +19,8 @@ export default function Apply() {
     e.preventDefault();
     setSaving(true);
     try {
-      await applyToJob(id, coverLetter);
-      navigate("/applications");
+      const application = await applyToJob(id, coverLetter);
+      navigate(`/applications/${application.id}`);
     } catch (e) {
       setError(e.response?.data?.message || "Could not submit application.");
     } finally {

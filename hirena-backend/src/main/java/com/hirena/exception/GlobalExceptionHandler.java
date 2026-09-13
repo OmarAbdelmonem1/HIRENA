@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import com.hirena.cv.analysis.exception.CvAnalysisException;
+import com.hirena.cv.analysis.exception.GeminiApiException;
 
 
 @Slf4j
@@ -108,6 +110,26 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(CvAnalysisException.class)
+    public ResponseEntity<ErrorResponse> handleCvAnalysisException(
+            CvAnalysisException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        if (ex instanceof GeminiApiException geminiException) {
+            status = geminiException.getStatus() != null
+                    ? HttpStatus.valueOf(geminiException.getStatus().value())
+                    : HttpStatus.BAD_GATEWAY;
+        }
+        log.warn("CV analysis failed on path {}: {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(status).body(errorResponse);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
