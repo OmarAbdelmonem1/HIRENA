@@ -642,6 +642,34 @@ td strong {
   font-size: 12px;
 }
 
+.notification-toast {
+  position: fixed;
+  top: 88px;
+  left: 50%;
+  z-index: 20;
+  display: grid;
+  gap: 4px;
+  width: min(420px, calc(100% - 32px));
+  padding: 14px 18px;
+  border: 1px solid #dbe4fb;
+  border-radius: 12px;
+  color: #1d2a49;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(21, 36, 74, 0.2);
+  text-align: left;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.notification-toast strong {
+  font-size: 14px;
+}
+
+.notification-toast span {
+  color: #5e6b85;
+  font-size: 13px;
+}
+
 /* Users list / details */
 .primary-button {
   display: inline-flex;

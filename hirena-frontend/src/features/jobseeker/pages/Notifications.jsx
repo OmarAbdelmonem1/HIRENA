@@ -35,11 +35,21 @@ export default function Notifications() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const receiveNotification = (event) => {
+      const notification = event.detail;
+      setNotifications((items) => [
+        notification,
+        ...items.filter((item) => item.id !== notification.id),
+      ]);
+    };
+    window.addEventListener("hirena:notification", receiveNotification);
     getNotifications()
       .then(setNotifications)
       .catch((e) =>
         setError(e.response?.data?.message || "Could not load notifications."),
       );
+    return () =>
+      window.removeEventListener("hirena:notification", receiveNotification);
   }, []);
 
   const visibleNotifications = useMemo(

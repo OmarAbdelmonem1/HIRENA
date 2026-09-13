@@ -12,6 +12,9 @@ import com.hirena.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +26,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final JobSeekerRepository jobSeekerRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public void applicationSubmitted(Application application) {
         save(application, NotificationType.APPLICATION_SUBMITTED,
@@ -88,7 +92,7 @@ public class NotificationService {
                 application.getJobSeeker().getId(), application.getId(), type)) {
             return;
         }
-        notificationRepository.save(Notification.builder()
+        Notification notification = notificationRepository.save(Notification.builder()
                 .jobSeeker(application.getJobSeeker())
                 .type(type)
                 .title(title)
@@ -96,6 +100,21 @@ public class NotificationService {
                 .applicationId(application.getId())
                 .jobId(application.getJob().getId())
                 .build());
+        Runnable publish = () -> messagingTemplate.convertAndSendToUser(
+                application.getJobSeeker().getUser().getEmail(),
+                "/queue/notifications",
+                NotificationResponse.fromEntity(notification)
+        );
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publish.run();
+                }
+            });
+        } else {
+            publish.run();
+        }
     }
 
     private JobSeeker currentJobSeeker() {
