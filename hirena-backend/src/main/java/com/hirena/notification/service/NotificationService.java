@@ -27,6 +27,7 @@ public class NotificationService {
     private final JobSeekerRepository jobSeekerRepository;
     private final CurrentUserProvider currentUserProvider;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationEmailService notificationEmailService;
 
     public void applicationSubmitted(Application application) {
         save(application, NotificationType.APPLICATION_SUBMITTED,
@@ -100,20 +101,29 @@ public class NotificationService {
                 .applicationId(application.getId())
                 .jobId(application.getJob().getId())
                 .build());
+        String recipientEmail = application.getJobSeeker().getUser().getEmail();
+        NotificationResponse notificationResponse = NotificationResponse.fromEntity(notification);
         Runnable publish = () -> messagingTemplate.convertAndSendToUser(
-                application.getJobSeeker().getUser().getEmail(),
+                recipientEmail,
                 "/queue/notifications",
-                NotificationResponse.fromEntity(notification)
+                notificationResponse
+        );
+        Runnable sendEmail = () -> notificationEmailService.sendNotificationEmail(
+                recipientEmail,
+                title,
+                message
         );
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     publish.run();
+                    sendEmail.run();
                 }
             });
         } else {
             publish.run();
+            sendEmail.run();
         }
     }
 
