@@ -36,6 +36,8 @@ public class GeminiService {
         
         log.info("Gemini client configured with base URL {} and model {}",
                 properties.getApiUrl(), properties.getModel());
+        log.info("Gemini API key configured: {}",
+                properties.getApiKey() != null && !properties.getApiKey().isBlank());
 
         this.restClient = restClientBuilder
                 .baseUrl(properties.getApiUrl())
