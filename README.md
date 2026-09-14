@@ -1,64 +1,93 @@
 # HIRENA
 
-HIRENA is a full-stack recruitment platform that connects job seekers, companies, and administrators in one application.
+HIRENA is a full-stack recruitment platform that connects **job seekers, companies, and administrators** in one application.
 
 ## Features
 
 - Candidate registration, authentication, and profile management
-- CV upload and AI-powered CV analysis with Google Gemini
+- CV upload and AI-powered CV analysis using **Google Gemini**
 - Job creation, search, filtering, and applications
 - Company and employer management
 - Application status tracking
-- In-app notifications with WebSocket/STOMP delivery
-- Email notifications through Gmail SMTP
-- Event-driven application processing with Apache Kafka
-- PostgreSQL persistence
-- JWT-based authentication and Spring Security
-- Docker Compose setup for the complete local stack
+- Real-time in-app notifications using **WebSocket/STOMP**
+- Email notifications using **Gmail SMTP**
+- Event-driven application processing using **Apache Kafka**
+- JWT authentication and role-based security
+- PostgreSQL database
+- Docker Compose setup
+
+## Key Contributions
+
+- Developed REST APIs using **Spring Boot, Spring MVC, and JPA**
+- Implemented authentication and authorization using **JWT and Spring Security**
+- Integrated **Google Gemini** for automated CV analysis
+- Implemented asynchronous application processing with **Apache Kafka**
+- Built real-time notifications using **WebSocket/STOMP**
+- Integrated email notifications using **Spring Mail and Gmail SMTP**
+- Developed the frontend using **React and Vite**
+- Containerized the application using **Docker Compose**
+
+## Architecture
+
+```text
+                    React Frontend
+                          |
+                   REST API and STOMP
+                          |
+                          v
+                  Spring Boot Backend
+                   /       |        \
+                  /        |         \
+                 v         v          v
+          PostgreSQL     Kafka      WebSocket
+                           |            |
+                           |            v
+                    +------+-----+     React
+                    |      |     |
+                 Gemini  Email  Notifications
+```
 
 ## Application Screenshots
 
-The following screenshots show the main HIRENA user journeys and dashboards.
+### Public and Authentication
 
-### Public and Authentication Screens
-
-| Home page | Login |
+| Home Page | Login |
 |---|---|
-| ![HIRENA home page](docs/screenshots/home-page.png) | ![HIRENA login page](docs/screenshots/login.png) |
+| ![Home Page](docs/screenshots/home-page.png) | ![Login](docs/screenshots/login.png) |
 
-| Home page alternate view | Job search |
+| Home Page Alternate View | Job Search |
 |---|---|
-| ![HIRENA home page alternate view](docs/screenshots/home-page-alt.png) | ![Job search](docs/screenshots/job-search.png) |
+| ![Home Page Alternate View](docs/screenshots/home-page-alt.png) | ![Job Search](docs/screenshots/job-search.png) |
 
-### Job Seeker Screens
+### Job Seeker
 
-| Job details | My applications |
+| Job Details | My Applications |
 |---|---|
-| ![Job details](docs/screenshots/job-details.png) | ![My applications](docs/screenshots/my-applications.png) |
+| ![Job Details](docs/screenshots/job-details.png) | ![My Applications](docs/screenshots/my-applications.png) |
 
-| Notifications | Company details |
+| Notifications | Company Details |
 |---|---|
-| ![Notifications](docs/screenshots/notifications.png) | ![Company details](docs/screenshots/company-details.png) |
+| ![Notifications](docs/screenshots/notifications.png) | ![Company Details](docs/screenshots/company-details.png) |
 
-### Company Screens
+### Company
 
-| Company dashboard | Job details dashboard view |
+| Company Dashboard | Job Details Dashboard |
 |---|---|
-| ![Company dashboard](docs/screenshots/company-dashboard.png) | ![Job details dashboard view](docs/screenshots/job-details-dashboard.png) |
+| ![Company Dashboard](docs/screenshots/company-dashboard.png) | ![Job Details Dashboard](docs/screenshots/job-details-dashboard.png) |
 
-| Applications grouped by job | Application with Gemini analysis |
+| Applications by Job | Gemini CV Analysis |
 |---|---|
-| ![Company applications grouped by job](docs/screenshots/company-applications-by-job.png) | ![Application with Gemini analysis](docs/screenshots/company-application-gemini-analysis.png) |
+| ![Applications by Job](docs/screenshots/company-applications-by-job.png) | ![Gemini CV Analysis](docs/screenshots/company-application-gemini-analysis.png) |
 
-### Admin Screens
+### Admin
 
-| Admin dashboard | Admin users |
+| Admin Dashboard | Users |
 |---|---|
-| ![Admin dashboard](docs/screenshots/admin-dashboard.png) | ![Admin users](docs/screenshots/admin-users.png) |
+| ![Admin Dashboard](docs/screenshots/admin-dashboard.png) | ![Admin Users](docs/screenshots/admin-users.png) |
 
-| Admin management |
-|---|---|
-| ![Admin management](docs/screenshots/admin-management.png) |
+| Admin Management |
+|---|
+| ![Admin Management](docs/screenshots/admin-management.png) |
 
 ## Technology Stack
 
@@ -69,7 +98,7 @@ The following screenshots show the main HIRENA user journeys and dashboards.
 - Axios
 - React Router
 - STOMP.js
-- Nginx for the production container
+- Nginx
 
 ### Backend
 
@@ -88,197 +117,61 @@ The following screenshots show the main HIRENA user journeys and dashboards.
 
 - PostgreSQL 16
 - Apache Kafka 3.8
-- Docker and Docker Compose
+- Docker
+- Docker Compose
+
+## Roles
+
+- **Candidate** - search and apply for jobs, manage profile and CV
+- **Company** - create jobs and manage applications
+- **Admin** - manage users and platform data
 
 ## Repository Structure
 
 ```text
 HIRENA/
-├── hirena-backend/       # Spring Boot API, WebSocket, email, Gemini, and Kafka consumers
-├── hirena-frontend/      # React/Vite web application
-├── docker-compose.yml    # Full local stack
+├── hirena-backend/       # Spring Boot backend
+├── hirena-frontend/      # React frontend
+├── docs/screenshots/     # Application screenshots
+├── docker-compose.yml    # Application infrastructure
 ├── .env.example          # Environment variable template
 └── README.md
 ```
 
-## Quick Start with Docker
+## Quick Start
 
 ### Prerequisites
 
 - Docker Desktop
 - Git
 
-### 1. Clone the repository
+### Run with Docker
 
 ```powershell
 git clone https://github.com/OmarAbdelmonem1/HIRENA.git
 cd HIRENA
-```
-
-### 2. Create the environment file
-
-```powershell
 Copy-Item .env.example .env
-```
-
-Open `.env` and set at least a strong `JWT_SECRET`. Gemini and email are optional during local development.
-
-### 3. Start the complete application
-
-```powershell
 docker compose up -d --build
 ```
 
-### 4. Open the application
+Open the application:
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8080 |
-| PostgreSQL | localhost:5432 |
-| Kafka | localhost:9092 |
+```text
+http://localhost:5173
+```
 
-### 5. Check service status and logs
+To view the backend logs:
 
 ```powershell
-docker compose ps
 docker compose logs -f backend
 ```
 
-To stop the stack without deleting database data:
+To stop the application without deleting database volumes:
 
 ```powershell
 docker compose down
 ```
 
-To stop the stack and delete Docker volumes, including PostgreSQL data:
-
-```powershell
-docker compose down -v
-```
-
-> Do not use `down -v` if you need to keep the local database.
-
-## Environment Variables
-
-The application reads configuration from environment variables. See `.env.example` for the complete template.
-
-| Variable | Required | Description |
-|---|---:|---|
-| `DB_NAME` | No | PostgreSQL database name |
-| `DB_USERNAME` | No | PostgreSQL username |
-| `DB_PASSWORD` | Yes for Docker | PostgreSQL password |
-| `JWT_SECRET` | Yes | Secret used to sign JWTs |
-| `JWT_EXPIRATION` | No | JWT expiration in milliseconds |
-| `GEMINI_API_KEY` | No | Google Gemini API key for CV analysis |
-| `MAIL_ENABLED` | No | Set to `true` to enable email notifications |
-| `MAIL_USERNAME` | No | Gmail account used for SMTP |
-| `MAIL_PASSWORD` | No | Gmail 16-character App Password |
-| `MAIL_FROM` | No | Sender email address |
-| `KAFKA_BOOTSTRAP_SERVERS` | No | Kafka connection string |
-| `VITE_API_BASE_URL` | No | Backend URL used by the frontend |
-
-Never commit `.env`, API keys, Gmail App Passwords, or production credentials.
-
-## Kafka Application Flow
-
-When a candidate creates an application:
-
-```text
-Application API
-      |
-      v
-Save application in PostgreSQL
-      |
-      v
-Publish ApplicationCreatedEvent
-      |
-      v
-Kafka topic: application-created
-      |
-      +--> Gemini consumer       --> CV analysis
-      |
-      +--> Notification consumer --> Database + WebSocket
-      |
-      +--> Email consumer        --> Gmail SMTP
-```
-
-Each consumer uses a separate consumer group so every consumer receives the event:
-
-```text
-hirena-gemini-group
-hirena-notification-group
-hirena-email-group
-```
-
-Failed messages are retried and then sent to a dead-letter topic after the configured retry attempts.
-
-## Running Without Docker
-
-### Backend
-
-Start PostgreSQL and Kafka, then run:
-
-```powershell
-cd hirena-backend
-.\mvnw.cmd spring-boot:run
-```
-
-The backend uses `localhost:5432` for PostgreSQL and `localhost:9092` for Kafka by default.
-
-### Frontend
-
-```powershell
-cd hirena-frontend
-npm install
-npm run dev
-```
-
-The development frontend is available at http://localhost:5173.
-
-## Gmail Email Configuration
-
-To enable email notifications:
-
-1. Enable 2-Step Verification on the Gmail account.
-2. Generate an App Password from Google Account → Security → App Passwords.
-3. Put the 16-character App Password in `MAIL_PASSWORD`.
-4. Set `MAIL_ENABLED=true`.
-
-Do not use the normal Gmail account password.
-
-## Testing
-
-Backend package build:
-
-```powershell
-cd hirena-backend
-.\mvnw.cmd -DskipTests package
-```
-
-Frontend build:
-
-```powershell
-cd hirena-frontend
-npm run build
-```
-
-Frontend lint:
-
-```powershell
-npm run lint
-```
-
-## Data Persistence
-
-The Docker Compose setup stores PostgreSQL data in the `hirena-postgres-data` volume and uploaded CV files in the `hirena-uploads` volume. Restarting containers does not delete these volumes.
-
-For production deployments, use managed PostgreSQL/Kafka services, HTTPS, strong secrets, restricted CORS origins, and a secret manager.
-
-## Reliability Note
-
-Application events are published after the application transaction commits. This prevents events for rolled-back applications from reaching consumers. For strict guaranteed delivery between PostgreSQL and Kafka, a transactional outbox pattern is recommended as a future enhancement.
-
 ## License
 
-This project is currently provided for demonstration and portfolio purposes.
+This project is developed for **demonstration and portfolio purposes**.
