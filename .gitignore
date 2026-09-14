@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+
+**/target/
+**/node_modules/
+**/dist/
+**/uploads/
+*.log
+
+.idea/
+.vscode/
+*.iml
+
+hirena-backend.zip

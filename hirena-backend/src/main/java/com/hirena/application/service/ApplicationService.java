@@ -19,6 +19,7 @@ import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
 import com.hirena.jobseeker.entity.CV;
 import lombok.RequiredArgsConstructor;
+import com.hirena.kafka.producer.ApplicationEventProducer;
 import com.hirena.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +43,7 @@ public class ApplicationService {
     private final CompanyService companyService;
     private final CurrentUserProvider currentUserProvider;
     private final NotificationService notificationService;
-    private final ApplicationCvAnalysisAsyncService applicationCvAnalysisAsyncService;
+    private final ApplicationEventProducer applicationEventProducer;
 
     // ── JobSeeker: apply ──────────────────────────────────────────────────
 
@@ -75,17 +76,12 @@ public class ApplicationService {
                 .build();
         application.setCvAnalysis(cvAnalysis);
         Application saved = applicationRepository.save(application);
-        notificationService.applicationSubmitted(saved);
-        if (saved.getCvAnalysis().getStatus()
-                == com.hirena.application.entity.CvAnalysisStatus.ANALYZING) {
-            Long applicationId = saved.getId();
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    applicationCvAnalysisAsyncService.analyze(applicationId);
-                }
-            });
-        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                applicationEventProducer.publishApplicationCreated(saved);
+            }
+        });
         return ApplicationResponse.fromEntity(saved, false);
     }
 

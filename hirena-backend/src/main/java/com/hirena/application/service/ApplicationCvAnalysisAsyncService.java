@@ -32,6 +32,15 @@ public class ApplicationCvAnalysisAsyncService {
     @Async
     @Transactional
     public void analyze(Long applicationId) {
+        analyzeInternal(applicationId);
+    }
+
+    @Transactional
+    public void analyzeSynchronously(Long applicationId) {
+        analyzeInternal(applicationId);
+    }
+
+    private void analyzeInternal(Long applicationId) {
         Application application = applicationRepository.findById(applicationId).orElse(null);
         if (application == null) {
             log.warn("Cannot analyze missing application {}", applicationId);
@@ -39,6 +48,10 @@ public class ApplicationCvAnalysisAsyncService {
         }
 
         CvAnalysis analysisResult = application.getCvAnalysis();
+        if (analysisResult != null && analysisResult.getStatus() == CvAnalysisStatus.COMPLETED) {
+            log.debug("Skipping duplicate CV analysis for application {}", applicationId);
+            return;
+        }
         if (analysisResult == null) {
             analysisResult = CvAnalysis.builder()
                     .application(application)

@@ -32,20 +32,27 @@ public class NotificationService {
     public void applicationSubmitted(Application application) {
         save(application, NotificationType.APPLICATION_SUBMITTED,
                 "Application submitted",
-                "Your application for " + application.getJob().getTitle() + " was submitted successfully.");
+                "Your application for " + application.getJob().getTitle() + " was submitted successfully.",
+                false);
+    }
+
+    public void applicationSubmittedFromKafka(Application application) {
+        applicationSubmitted(application);
     }
 
     public void applicationStatusChanged(Application application) {
         String status = application.getStatus().name().toLowerCase();
         save(application, NotificationType.APPLICATION_STATUS_CHANGED,
                 "Application status updated",
-                "Your application for " + application.getJob().getTitle() + " was " + status + ".");
+                "Your application for " + application.getJob().getTitle() + " was " + status + ".",
+                true);
     }
 
     public void applicationViewed(Application application) {
         save(application, NotificationType.APPLICATION_VIEWED, "Application viewed",
                 application.getJob().getCompany().getCompanyName() + " viewed your application for "
-                        + application.getJob().getTitle() + ".");
+                        + application.getJob().getTitle() + ".",
+                true);
     }
 
     @Transactional(readOnly = true)
@@ -88,7 +95,8 @@ public class NotificationService {
         return notification;
     }
 
-    private void save(Application application, NotificationType type, String title, String message) {
+    private void save(Application application, NotificationType type, String title,
+                      String message, boolean sendEmailEnabled) {
         if (notificationRepository.existsByJobSeekerIdAndApplicationIdAndType(
                 application.getJobSeeker().getId(), application.getId(), type)) {
             return;
@@ -108,11 +116,11 @@ public class NotificationService {
                 "/queue/notifications",
                 notificationResponse
         );
-        Runnable sendEmail = () -> notificationEmailService.sendNotificationEmail(
-                recipientEmail,
-                title,
-                message
-        );
+        Runnable sendEmail = () -> {
+            if (sendEmailEnabled) {
+                notificationEmailService.sendNotificationEmail(recipientEmail, title, message);
+            }
+        };
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
