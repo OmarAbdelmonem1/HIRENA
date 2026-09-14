@@ -134,7 +134,6 @@ HIRENA/
 ├── hirena-frontend/      # React frontend
 ├── docs/screenshots/     # Application screenshots
 ├── docker-compose.yml    # Application infrastructure
-├── .env.example          # Environment variable template
 └── README.md
 ```
 
