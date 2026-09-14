@@ -16,6 +16,50 @@ HIRENA is a full-stack recruitment platform that connects job seekers, companies
 - JWT-based authentication and Spring Security
 - Docker Compose setup for the complete local stack
 
+## Application Screenshots
+
+The following screenshots show the main HIRENA user journeys and dashboards.
+
+### Public and Authentication Screens
+
+| Home page | Login |
+|---|---|
+| ![HIRENA home page](docs/screenshots/home-page.png) | ![HIRENA login page](docs/screenshots/login.png) |
+
+| Home page alternate view | Job search |
+|---|---|
+| ![HIRENA home page alternate view](docs/screenshots/home-page-alt.png) | ![Job search](docs/screenshots/job-search.png) |
+
+### Job Seeker Screens
+
+| Job details | My applications |
+|---|---|
+| ![Job details](docs/screenshots/job-details.png) | ![My applications](docs/screenshots/my-applications.png) |
+
+| Notifications | Company details |
+|---|---|
+| ![Notifications](docs/screenshots/notifications.png) | ![Company details](docs/screenshots/company-details.png) |
+
+### Company Screens
+
+| Company dashboard | Job details dashboard view |
+|---|---|
+| ![Company dashboard](docs/screenshots/company-dashboard.png) | ![Job details dashboard view](docs/screenshots/job-details-dashboard.png) |
+
+| Applications grouped by job | Application with Gemini analysis |
+|---|---|
+| ![Company applications grouped by job](docs/screenshots/company-applications-by-job.png) | ![Application with Gemini analysis](docs/screenshots/company-application-gemini-analysis.png) |
+
+### Admin Screens
+
+| Admin dashboard | Admin users |
+|---|---|
+| ![Admin dashboard](docs/screenshots/admin-dashboard.png) | ![Admin users](docs/screenshots/admin-users.png) |
+
+| Admin management |
+|---|---|
+| ![Admin management](docs/screenshots/admin-management.png) |
+
 ## Technology Stack
 
 ### Frontend
