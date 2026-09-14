@@ -198,7 +198,7 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
     // ── Public / JobSeeker: approved jobs ────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Page<JobResponse> getApprovedJobs(Pageable pageable, String keyword, String location,
+    public Page<JobResponse> getApprovedJobs(Pageable pageable, String keyword, String companyName, String location,
                                              EmploymentType employmentType, JobCategory category,
                                              Integer minExperience) {
         Specification<Job> specification = (root, query, criteriaBuilder) -> {
@@ -214,6 +214,15 @@ public Page<AdminJobListResponse> getAdminJobs(Pageable pageable) {
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("requirements")), pattern),
                         criteriaBuilder.like(criteriaBuilder.lower(company.get("companyName")), pattern)));
+            }
+
+            String normalizedCompanyName = blank(companyName);
+            if (normalizedCompanyName != null) {
+                var company = root.join("company");
+                predicates = criteriaBuilder.and(predicates,
+                        criteriaBuilder.like(
+                                criteriaBuilder.lower(company.get("companyName")),
+                                "%" + normalizedCompanyName.toLowerCase() + "%"));
             }
 
             String normalizedLocation = blank(location);

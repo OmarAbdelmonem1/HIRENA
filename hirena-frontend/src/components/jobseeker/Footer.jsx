@@ -8,10 +8,10 @@ export default function Footer() {
           <p>Find work that moves your career forward.</p>
         </div>
         <div className="footer-links">
-          <Link to="/companies">About</Link>
-          <Link to="/profile">Contact</Link>
-          <Link to="/profile">Privacy</Link>
-          <Link to="/profile">Terms</Link>
+          <Link to="/about">About</Link>
+          <Link to="/contact">Contact</Link>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
         </div>
       </div>
       <div className="footer-bottom">

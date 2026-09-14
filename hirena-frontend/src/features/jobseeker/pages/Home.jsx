@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCompanies, getJobs } from "../services/jobseekerService";
-import { JOB_CATEGORIES } from "../../../constants/jobSeekerProfile";
+import {
+  COUNTRIES,
+  JOB_CATEGORIES,
+} from "../../../constants/jobSeekerProfile";
 
 const categoryIcons = ["💻", "🎨", "☁️", "🛠️", "📊", "🧪", "🧰", "💼"];
 const categories = JOB_CATEGORIES.filter(([value]) => value)
@@ -77,13 +80,20 @@ export default function Home() {
               onChange={(e) => setKeyword(e.target.value)}
             />
           </label>
-          <label>
+          <label className="job-search-location">
             <span>⌖</span>
-            <input
-              placeholder="Location"
+            <select
+              aria-label="Filter jobs by country"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-            />
+            >
+              <option value="">All locations</option>
+              {COUNTRIES.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
           </label>
           <button className="primary-button">Search jobs</button>
         </form>

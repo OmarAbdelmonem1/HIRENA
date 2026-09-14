@@ -21,13 +21,14 @@ public class PublicJobController {
     @GetMapping
     public ResponseEntity<Page<JobResponse>> getApprovedJobs(
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String company,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) EmploymentType employmentType,
             @RequestParam(required = false) JobCategory category,
             @RequestParam(required = false) Integer minExperience,
             @PageableDefault(size = 12, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(jobService.getApprovedJobs(
-                pageable, keyword, location, employmentType, category, minExperience));
+                pageable, keyword, company, location, employmentType, category, minExperience));
     }
 
     @GetMapping("/{id}")

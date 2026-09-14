@@ -14,6 +14,7 @@ import {
   EMPTY_EXPERIENCE,
   INITIAL_PROFILE,
 } from "../../../constants/jobSeekerProfile";
+import validateProfile from "../../../utils/validateProfile";
 
 const toForm = (data = {}) => ({
   ...INITIAL_PROFILE,
@@ -217,6 +218,11 @@ function Profile() {
     event.preventDefault();
     setError("");
     setNotice("");
+    const validationError = validateProfile(form);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setSaving(true);
 
     const data = {
@@ -335,6 +341,7 @@ function Profile() {
               value={form.dateOfBirth}
               onChange={change}
               required
+              max={new Date().toISOString().slice(0, 10)}
             />
             <label>
               Gender

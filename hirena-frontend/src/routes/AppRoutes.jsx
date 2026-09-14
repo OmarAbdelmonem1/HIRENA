@@ -11,6 +11,12 @@ import MainLayout from "../components/layout/MainLayout";
 import Home from "../features/jobseeker/pages/Home";
 import Register from "../features/auth/Register";
 import { jobSeekerRoutes } from "./jobseeker/JobSeekerRoutes";
+import {
+  About,
+  Contact,
+  Privacy,
+  Terms,
+} from "../features/public/pages/PublicInfoPage";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +25,10 @@ export default function AppRoutes() {
       <Route path="/register" element={<Register />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
       </Route>
       <Route
         element={

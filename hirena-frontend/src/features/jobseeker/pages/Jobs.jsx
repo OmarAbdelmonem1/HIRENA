@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { getJobs } from "../services/jobseekerService";
+import { getCompanies, getJobs } from "../services/jobseekerService";
 import { JobCard } from "./Home";
 import { COUNTRIES, JOB_CATEGORIES } from "../../../constants/jobSeekerProfile";
 import useAsyncRequest from "../../../hooks/useAsyncRequest";
@@ -25,15 +25,25 @@ function Jobs() {
     error,
     execute: loadJobs,
   } = useAsyncRequest(getJobs, { initialData: { content: [] } });
+  const {
+    data: companyPage,
+    execute: loadCompanies,
+  } = useAsyncRequest(getCompanies, { initialData: { content: [] } });
   const jobs = page?.content || [];
+  const companies = companyPage?.content || [];
   const { values: filters, setValues: setFilters, handleChange: change } = useForm({
     keyword: searchParams.get("keyword") || "",
+    company: searchParams.get("company") || "",
     location: searchParams.get("location") || "",
     employmentType: searchParams.get("employmentType") || "",
     category: searchParams.get("category") || "",
     minExperience: searchParams.get("minExperience") || "",
     sort: searchParams.get("sort") || "createdAt,desc",
   });
+
+  useEffect(() => {
+    loadCompanies({ page: 0, size: 1000 }).catch(() => {});
+  }, [loadCompanies]);
 
   const load = (nextFilters = filters) =>
     loadJobs({
@@ -59,6 +69,7 @@ function Jobs() {
   const clear = () => {
     const next = {
       keyword: "",
+      company: "",
       location: "",
       employmentType: "",
       category: "",
@@ -127,6 +138,25 @@ function Jobs() {
                   {label}
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            Company
+            <select name="company" value={filters.company} onChange={change}>
+              <option value="">All companies</option>
+              {companies
+                .filter((company) => company.companyName)
+                .sort((a, b) =>
+                  a.companyName.localeCompare(b.companyName),
+                )
+                .map((company) => (
+                  <option
+                    value={company.companyName}
+                    key={company.id || company.companyName}
+                  >
+                    {company.companyName}
+                  </option>
+                ))}
             </select>
           </label>
           <label>
