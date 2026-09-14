@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { getCompanies } from "../services/jobseekerService";
 import useAsyncRequest from "../../../hooks/useAsyncRequest";
 import useForm from "../../../hooks/useForm";
+import { COMPANY_INDUSTRIES } from "../../../constants/company";
 
 export default function Companies() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,12 +46,18 @@ export default function Companies() {
             value={filters.keyword}
             onChange={change}
           />
-          <input
+          <select
             name="industry"
-            placeholder="Industry e.g. Technology"
             value={filters.industry}
             onChange={change}
-          />
+          >
+            <option value="">All industries</option>
+            {COMPANY_INDUSTRIES.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
           <button className="primary-button">Search</button>
         </form>
       </section>
