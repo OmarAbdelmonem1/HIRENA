@@ -19,7 +19,7 @@ import com.hirena.jobseeker.entity.JobSeeker;
 import com.hirena.jobseeker.repository.JobSeekerRepository;
 import com.hirena.jobseeker.entity.CV;
 import lombok.RequiredArgsConstructor;
-import com.hirena.kafka.producer.ApplicationEventProducer;
+import com.hirena.rabbit.producer.ApplicationEventProducer;
 import com.hirena.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

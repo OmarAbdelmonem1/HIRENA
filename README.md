@@ -11,7 +11,7 @@ HIRENA is a full-stack recruitment platform that connects **job seekers, compani
 - Application status tracking
 - Real-time in-app notifications using **WebSocket/STOMP**
 - Email notifications using **Gmail SMTP**
-- Event-driven application processing using **Apache Kafka**
+- Event-driven application processing using **RabbitMQ**
 - JWT authentication and role-based security
 - PostgreSQL database
 - Docker Compose setup
@@ -21,7 +21,7 @@ HIRENA is a full-stack recruitment platform that connects **job seekers, compani
 - Developed REST APIs using **Spring Boot, Spring MVC, and JPA**
 - Implemented authentication and authorization using **JWT and Spring Security**
 - Integrated **Google Gemini** for automated CV analysis
-- Implemented asynchronous application processing with **Apache Kafka**
+- Implemented asynchronous application processing with **RabbitMQ**
 - Built real-time notifications using **WebSocket/STOMP**
 - Integrated email notifications using **Spring Mail and Gmail SMTP**
 - Developed the frontend using **React and Vite**
@@ -39,7 +39,7 @@ HIRENA is a full-stack recruitment platform that connects **job seekers, compani
                    /       |        \
                   /        |         \
                  v         v          v
-          PostgreSQL     Kafka      WebSocket
+          PostgreSQL   RabbitMQ     WebSocket
                            |            |
                            |            v
                     +------+-----+     React
@@ -109,14 +109,14 @@ HIRENA is a full-stack recruitment platform that connects **job seekers, compani
 - Spring Security
 - JWT
 - Spring WebSocket
-- Spring Kafka
+- Spring AMQP (RabbitMQ)
 - Spring Mail
 - Maven
 
 ### Infrastructure
 
 - PostgreSQL 16
-- Apache Kafka 3.8
+- RabbitMQ 4
 - Docker
 - Docker Compose
 

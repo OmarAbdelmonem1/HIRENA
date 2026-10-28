@@ -1,10 +1,10 @@
-package com.hirena.kafka.consumer;
+package com.hirena.rabbit.consumer;
 
 import com.hirena.application.event.ApplicationCreatedEvent;
 import com.hirena.application.service.ApplicationCvAnalysisAsyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,11 +14,7 @@ public class GeminiApplicationCreatedConsumer {
 
     private final ApplicationCvAnalysisAsyncService analysisService;
 
-    @KafkaListener(
-            topics = "${kafka.topic.application-created}",
-            groupId = "${kafka.consumer.gemini-group}",
-            containerFactory = "applicationEventKafkaListenerContainerFactory"
-    )
+    @RabbitListener(queues = "${rabbitmq.queue.application-created.gemini}")
     public void consume(ApplicationCreatedEvent event) {
         log.info("Received {} for Gemini analysis, application {}",
                 event.eventType(), event.applicationId());

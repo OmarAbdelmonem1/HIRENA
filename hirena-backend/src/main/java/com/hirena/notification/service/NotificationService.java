@@ -36,7 +36,7 @@ public class NotificationService {
                 false);
     }
 
-    public void applicationSubmittedFromKafka(Application application) {
+    public void applicationSubmittedFromEvent(Application application) {
         applicationSubmitted(application);
     }
 
